@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import click
 
-from app import create_app
-from app.database import init_db
+from app import (
+    create_app,
+    setup_db
+)
 
 
 @click.group(help='anchor backend management cli')
@@ -16,21 +18,21 @@ def main():
     default='prod', type=click.Choice(['dev', 'test', 'prod'])
 )
 def run(config):
-    app = create_app(config.title())
-    app.run()
+    create_app(config.title()).run()
 
 
-@click.command('initdb', help='initialize database')
+@click.command('setup', help='initialize database')
 @click.option(
     '-c', '--config',
     default='prod', type=click.Choice(['dev', 'test', 'prod'])
 )
-def initdb(config):
-    init_db(config.title())
+def setup(config):
+    app = create_app(config.title())
+    setup_db(app)
 
 
 main.add_command(run)
-main.add_command(initdb)
+main.add_command(setup)
 
 
 if __name__ == "__main__":
