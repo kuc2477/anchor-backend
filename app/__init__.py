@@ -1,22 +1,21 @@
-import os
-import sys
-
-from flask import Flask, render_template
-from flask.ext.sqlalchemy import SQLAlchemy
-
-from .database import db_session
+from flask import Flask
 
 
-def create_app(config):
+def create_app(cfg):
+    # configure app from the config
+    config = get_config(cfg)
     app = Flask(config.PROJECT_NAME)
     app.config.from_object(config)
-    return app, SQLAlchemy(app)
 
-def getconfig(name):
-    module = __import__('config', fromlist=[name])
-    return getattr(module, name)
+    # set database for the app
+    from .database import db
+    db.init_app(app)
+
+    return app
 
 
-@app.teardown_appcontext
-def shutdown_session(exception=None):
-    db_session.remove()
+def get_config(cfg):
+    if isinstance(cfg, str):
+        module = __import__('config', fromlist=[cfg])
+        return getattr(module, cfg)
+    return cfg
