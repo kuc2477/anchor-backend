@@ -1,6 +1,11 @@
 from flask import Flask
 
-from .database import db
+from .extensions import (
+    db,
+    configure_db,
+    configure_login_manger
+)
+from .users.views import users
 
 
 def create_app(cfg):
@@ -10,10 +15,19 @@ def create_app(cfg):
     app = Flask(config.PROJECT_NAME)
     app.config.from_object(config)
 
-    # set database for the app
-    db.init_app(app)
+    # configure extensions on app
+    configure_db(app)
+    configure_login_manger(app)
+
+    # register blueprints
+    register_blueprints(app, users)
 
     return app
+
+
+def register_blueprints(app, *blueprints):
+    for bp in blueprints:
+        app.register_blueprint(bp)
 
 
 def setup_db(app):
