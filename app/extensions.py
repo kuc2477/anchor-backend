@@ -1,6 +1,7 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
 from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 
 
 # ===================
@@ -35,4 +36,6 @@ def configure_login_manger(app):
         return User.get(user_id)
 
 def configure_admin(app):
+    from .users.models import User
     admin.init_app(app)
+    admin.add_view(ModelView(User, db.session))
