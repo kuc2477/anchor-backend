@@ -2,3 +2,6 @@ Flask==0.10.1
 Flask-Login==0.3.2
 Flask-SQLAlchemy==2.1
 click==6.2
+Flask-RESTful==0.3.5
+marshmallow==2.5.0
+validators==0.10

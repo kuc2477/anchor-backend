@@ -3,7 +3,8 @@ from flask import Flask
 from .extensions import (
     db,
     configure_db,
-    configure_login_manger
+    configure_login_manger,
+    configure_admin
 )
 from .users.views import users
 
@@ -18,6 +19,8 @@ def create_app(cfg):
     # configure extensions on app
     configure_db(app)
     configure_login_manger(app)
+    if config.ADMIN:
+        configure_admin(app)
 
     # register blueprints
     register_blueprints(app, users)

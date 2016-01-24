@@ -1,21 +1,46 @@
 from flask import Blueprint
-from flask.ext.login import login_required
+from flask import redirect
+from flask import request
+from flask.ext.login import (
+    login_required,
+    login_user,
+    logout_user
+)
+from flask.ext.restful import (
+    Api,
+    abort
+)
 
-# users app blueprint
+from .models import User
+
+
+# users blueprint
 users = Blueprint('users', __name__)
+users_api = Api(users)
+
+users_api.add_resource(User.Resource, '/users/<int:id>')
+users_api.add_resource(User.ListResource, '/users')
 
 
 @users.route('/')
 @login_required
 def index():
-    return 'INDEX PAGE NOT IMPLEMENTED YET'
+    return 'LOGINNED (INDEX PAGE)'
 
 
-@users.route('/login')
+@users.route('/login', methods=['POST'])
 def login():
-    return 'LOGIN API NOT IMPLEMENTED YET'
+    email = request.form['email']
+    password = request.form['password']
+
+    user = User.query.filter_by(email=email).first_or_404()
+    if user.check_password(password):
+        login_user(user)
+        redirect('/')
+
+    abort(401)
 
 
-@users.route('/logout')
+@users.route('/logout', methods=['POST'])
 def logout():
-    return 'LOGOUT API NOT IMPLEMENTED YET'
+    logout_user()

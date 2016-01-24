@@ -15,10 +15,10 @@ def main():
 @click.command('run', help='run anchor backend server')
 @click.option(
     '-c', '--config',
-    default='prod', type=click.Choice(['dev', 'test', 'prod'])
+    default='dev', type=click.Choice(['dev', 'test', 'prod'])
 )
 def run(config):
-    create_app(config.title()).run()
+    create_app(config.title()).run(debug=True)
 
 
 @click.command('setup', help='initialize database')

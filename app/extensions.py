@@ -1,5 +1,6 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
+from flask_admin import Admin
 
 
 # ===================
@@ -11,6 +12,9 @@ db = SQLAlchemy()
 
 # app login manager instance
 login_manager = LoginManager()
+
+# admin instance
+admin = Admin()
 
 
 # =============
@@ -29,3 +33,6 @@ def configure_login_manger(app):
     @login_manager.user_loader
     def load_user(user_id):
         return User.get(user_id)
+
+def configure_admin(app):
+    admin.init_app(app)

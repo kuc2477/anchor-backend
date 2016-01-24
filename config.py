@@ -6,6 +6,7 @@ class Base(object):
     PROJECT_NAME = 'anchor-backend'
 
     # Mode
+    ADMIN = False
     DEBUG = False
     TESTING = False
 
@@ -19,6 +20,8 @@ class Base(object):
 
 
 class Dev(Base):
+    # Mode
+    ADMIN = True
     DEBUG = True
 
     # Database
@@ -28,6 +31,7 @@ class Dev(Base):
 
 
 class Test(Base):
+    # Mode
     TESTING = True
 
     # Database
