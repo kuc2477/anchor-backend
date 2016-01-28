@@ -1,6 +1,12 @@
 import os
 from datetime import timedelta
 
+from SECRET import (
+    ANCHOR_DB_USERNAME,
+    ANCHOR_DB_PASSWORD,
+    SECRET_KEY
+)
+
 
 class Base(object):
     # Project name
@@ -14,13 +20,13 @@ class Base(object):
     # Database
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_DATABASE_URI = \
-        'postgresql://{username}:{password}@localhost/anchor'.format(
-            os.environ.get('ANCHOR_DB_USERNAME'),
-            os.environ.get('ANCHOR_DB_PASSWORD')
+        'postgresql+psycopg2://{0}:{1}@localhost:5432/anchor'.format(
+            ANCHOR_DB_USERNAME,
+            ANCHOR_DB_PASSWORD
         )
 
     # Session
-    SECRET_KEY = os.environ.get('ANCHOR_SECRET_KEY', 'BASE_SECRET_KEY')
+    SECRET_KEY = SECRET_KEY
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
 
