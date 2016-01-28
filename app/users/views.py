@@ -32,13 +32,13 @@ def index():
 def login():
     email = request.form['email']
     password = request.form['password']
-
     user = User.query.filter_by(email=email).first_or_404()
+
     if user.check_password(password):
         login_user(user)
         redirect('/')
-
-    abort(401)
+    else:
+        abort(401)
 
 
 @users.route('/logout', methods=['POST'])

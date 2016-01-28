@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 
 
@@ -12,9 +13,14 @@ class Base(object):
 
     # Database
     SQLALCHEMY_ECHO = False
-    SQLALCHEMY_DATABASE_URI = 'sqlite:////tmp/%s.sqlite' % PROJECT_NAME
+    SQLALCHEMY_DATABASE_URI = \
+        'postgresql://{username}:{password}@localhost/anchor'.format(
+            os.environ.get('ANCHOR_DB_USERNAME'),
+            os.environ.get('ANCHOR_DB_PASSWORD')
+        )
 
     # Session
+    SECRET_KEY = os.environ.get('ANCHOR_SECRET_KEY', 'BASE_SECRET_KEY')
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
 

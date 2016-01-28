@@ -1,3 +1,2 @@
 -r base.txt
 ipython==4.0.3
-Flask-Admin==1.4.0
