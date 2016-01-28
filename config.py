@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 
 class Base(object):
@@ -19,6 +20,7 @@ class Base(object):
         )
 
     # Session
+    SECRET_KEY = os.environ.get('ANCHOR_SECRET_KEY', 'BASE_SECRET_KEY')
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
 
