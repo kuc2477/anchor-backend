@@ -1,14 +1,18 @@
-from flask import Blueprint
-from flask import redirect
-from flask import request
+from flask import (
+    Blueprint,
+    redirect,
+    request,
+    jsonify,
+)
 from flask.ext.login import (
+    current_user,
     login_required,
     login_user,
-    logout_user
+    logout_user,
 )
 from flask.ext.restful import (
     Api,
-    abort
+    abort,
 )
 
 from .models import User
@@ -37,6 +41,14 @@ def login():
     if user.check_password(password):
         login_user(user)
         redirect('/')
+    else:
+        abort(401)
+
+
+@users.route('/userinfo', methods=['GET'])
+def user_info():
+    if current_user.is_authenticated:
+        return jsonify(**current_user.serialized)
     else:
         abort(401)
 
