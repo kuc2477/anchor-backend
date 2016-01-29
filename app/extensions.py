@@ -37,7 +37,7 @@ def configure_login_manger(app):
 
 def configure_admin(app):
     class UserModelView(ModelView):
-        form_excluded_columns = ['email', 'password_hash']
+        form_excluded_columns = ['password_hash']
 
     from .users.models import User
     admin.init_app(app)
