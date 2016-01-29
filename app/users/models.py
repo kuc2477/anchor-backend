@@ -7,6 +7,7 @@ from marshmallow import (
     Schema as MarshmallowSchema,
     fields
 )
+from sqlalchemy_utils.types.choice import ChoiceType
 from flask.ext.login import UserMixin
 from flask.ext.restful.reqparse import RequestParser
 from flask.ext.restful import (
@@ -20,13 +21,21 @@ from ..utils import classproperty
 
 
 class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    firstname = db.Column(db.String(100))
-    lastname = db.Column(db.String(100))
-    email = db.Column(db.String(120), unique=True)
-    password_hash = db.Column(db.String(60))
+    ADMIN, USER = (u'ADMIN', u'USER')
+    ROLES = [
+        (ADMIN, u'Admin'),
+        (USER, u'User')
+    ]
 
-    def __init__(self, firstname='', lastname='', email='', password=''):
+    id = db.Column(db.Integer, primary_key=True)
+    firstname = db.Column(db.String(100), nullable=False)
+    lastname = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
+    role = db.Column(ChoiceType(ROLES), nullable=False, default=USER)
+
+    def __init__(self, firstname='', lastname='', email='', password='',
+                 type=USER):
         self.firstname = firstname.title()
         self.lastname = lastname.title()
         self.email = email.lower()
