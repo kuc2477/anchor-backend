@@ -40,7 +40,7 @@ def login():
 
     if user.check_password(password):
         login_user(user)
-        redirect('/')
+        return jsonify({ 'user': user.serialized })
     else:
         abort(401)
 
@@ -48,7 +48,7 @@ def login():
 @users.route('/userinfo', methods=['GET'])
 def user_info():
     if current_user.is_authenticated:
-        return jsonify(**current_user.serialized)
+        return jsonify({ 'user': current_user.serialized })
     else:
         abort(401)
 

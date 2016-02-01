@@ -50,7 +50,7 @@ class User(UserMixin, db.Model):
     @property
     def serialized(self):
         schema = self.Schema()
-        return schema.dump(self)
+        return schema.dump(self).data
 
     @classproperty
     def registration_parser(cls):
