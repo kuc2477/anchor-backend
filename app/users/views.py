@@ -44,6 +44,11 @@ def login():
     else:
         abort(401)
 
+@users.route('/logout', methods=['POST'])
+def logout():
+    serialized = current_user.serialized
+    logout_user()
+    return jsonify({ 'user': serialized })
 
 @users.route('/userinfo', methods=['GET'])
 def user_info():
@@ -51,8 +56,3 @@ def user_info():
         return jsonify({ 'user': current_user.serialized })
     else:
         abort(401)
-
-
-@users.route('/logout', methods=['POST'])
-def logout():
-    logout_user()
