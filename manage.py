@@ -1,6 +1,5 @@
 #!/usr/bin/env python
-import os
-from distutils.util import strtobool
+from __future__ import print_function
 from getpass import getpass
 
 from flask.ext.script import Manager, Command
@@ -9,7 +8,6 @@ from flask.ext.migrate import Migrate, MigrateCommand
 from config import Dev
 from app import (
     create_app,
-    setup_db
 )
 from app.users.models import User
 from app.extensions import db
@@ -22,9 +20,9 @@ migrate = Migrate(app, db)
 
 class CreateSuperUser(Command):
     def run(self):
-        email = raw_input('Enter user email: ')
-        firstname = raw_input('Enter user\'s firstname: ')
-        lastname = raw_input('Enter user\'s last name: ')
+        email = input('Enter user email: ')
+        firstname = input('Enter user\'s firstname: ')
+        lastname = input('Enter user\'s last name: ')
         password = getpass('Enter user\'s password: ')
         password_check = getpass('Enter user\'s password again: ')
 

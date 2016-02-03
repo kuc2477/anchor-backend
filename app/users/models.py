@@ -17,7 +17,7 @@ from flask.ext.restful import (
 )
 
 
-from .. import db
+from ..extensions import db
 from ..utils import classproperty
 
 
@@ -140,6 +140,7 @@ def _add_email(parser):
         'email', type=email_type, required=True,
         help='email of ther user'
     )
+
 
 def _add_firstname(parser):
     parser.add_argument(

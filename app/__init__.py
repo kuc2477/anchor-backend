@@ -1,9 +1,9 @@
 from flask import Flask
 
 from .extensions import (
-    db,
     configure_db,
-    configure_login_manger,
+    configure_login,
+    configure_mail,
     configure_admin
 )
 from .users.views import users
@@ -18,7 +18,8 @@ def create_app(cfg):
 
     # configure extensions on app
     configure_db(app)
-    configure_login_manger(app)
+    configure_login(app)
+    configure_mail(app)
     if config.ADMIN:
         configure_admin(app)
 
@@ -31,16 +32,6 @@ def create_app(cfg):
 def register_blueprints(app, *blueprints):
     for bp in blueprints:
         app.register_blueprint(bp)
-
-
-def setup_db(app):
-    """Initialize database for the app"""
-    from .users import models as user_models
-    from .sites import models as site_models
-    from .pages import models as page_models
-    from .schedules import models as schedule_models
-    with app.app_context():
-        db.create_all()
 
 
 def get_config(cfg):

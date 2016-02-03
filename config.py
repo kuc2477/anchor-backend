@@ -1,10 +1,10 @@
-import os
 from datetime import timedelta
 from secret import (
     DB_NAME,
     DB_USERNAME,
     DB_PASSWORD,
     SECRET_KEY,
+    SECRET_SALT,
     MAIL_SERVER,
     MAIL_USERNAME,
     MAIL_PASSWORD
@@ -28,11 +28,13 @@ class Base(object):
         )
 
     # Session
+    SECRET_SALT = SECRET_SALT
     SECRET_KEY = SECRET_KEY
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
 
     # Mail
     MAIL_SERVER = MAIL_SERVER
+    MAIL_DEFAULT_SENDER = MAIL_USERNAME
     MAIL_USERNAME = MAIL_USERNAME
     MAIL_PASSWORD = MAIL_PASSWORD
     MAIL_PORT = 465

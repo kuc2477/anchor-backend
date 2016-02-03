@@ -1,12 +1,10 @@
 from flask import (
     Blueprint,
-    redirect,
     request,
     jsonify,
 )
 from flask.ext.login import (
     current_user,
-    login_required,
     login_user,
     logout_user,
 )
@@ -15,6 +13,7 @@ from flask.ext.restful import (
     abort,
 )
 
+from ..extensions import db
 from .models import User
 
 
@@ -32,7 +31,7 @@ def login():
 
     if user.check_password(password):
         login_user(user)
-        return jsonify({ 'user': user.serialized })
+        return jsonify({'user': user.serialized})
     else:
         abort(401)
 
@@ -41,7 +40,7 @@ def login():
 def logout():
     serialized = current_user.serialized
     logout_user()
-    return jsonify({ 'user': serialized })
+    return jsonify({'user': serialized})
 
 
 @users.route('/register', methods=['POST'])
@@ -58,13 +57,19 @@ def register():
     if not password_ok or already_exists:
         abort(400)
 
+    u = User(firstname, lastname, password)
+    db.session.add(u)
+    db.session.commit()
+
+
 @users.route('/confirm', methods=['GET'])
 def confirm():
     pass
 
+
 @users.route('/userinfo', methods=['GET'])
 def user_info():
     if current_user.is_authenticated:
-        return jsonify({ 'user': current_user.serialized })
+        return jsonify({'user': current_user.serialized})
     else:
         abort(401)

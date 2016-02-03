@@ -1,5 +1,6 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
+from flask_mail import Mail
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
@@ -14,6 +15,9 @@ db = SQLAlchemy()
 # app login manager instance
 login_manager = LoginManager()
 
+# app mail extension instance
+mail = Mail()
+
 # admin instance
 admin = Admin()
 
@@ -26,7 +30,7 @@ def configure_db(app):
     db.init_app(app)
 
 
-def configure_login_manger(app):
+def configure_login(app):
     login_manager.init_app(app)
 
     from .users.models import User
@@ -34,6 +38,11 @@ def configure_login_manger(app):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(user_id)
+
+
+def configure_mail(app):
+    mail.init_app(app)
+
 
 def configure_admin(app):
     class UserModelView(ModelView):
