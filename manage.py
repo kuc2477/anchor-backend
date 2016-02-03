@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+import os
+from distutils.util import strtobool
 from getpass import getpass
 
 from flask.ext.script import Manager, Command
@@ -17,6 +19,16 @@ app = create_app(Dev)
 manager = Manager(app)
 migrate = Migrate(app, db)
 
+
+def ask_boolean(prompt):
+    print('{0} [y/n]'.format(prompt))
+    while True:
+        try:
+            return strtobool(raw_input().lower())
+        except ValueError:
+            print('Please answer with y or n')
+
+
 class CreateSuperUser(Command):
     def run(self):
         email = raw_input('Enter user email: ')
@@ -31,6 +43,7 @@ class CreateSuperUser(Command):
             user = User(firstname, lastname, email, password)
             db.session.add(user)
             db.session.commit()
+
 
 manager.add_command('db', MigrateCommand)
 manager.add_command('createsuperuser', CreateSuperUser)
