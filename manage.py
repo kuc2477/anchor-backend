@@ -20,15 +20,6 @@ manager = Manager(app)
 migrate = Migrate(app, db)
 
 
-def ask_boolean(prompt):
-    print('{0} [y/n]'.format(prompt))
-    while True:
-        try:
-            return strtobool(raw_input().lower())
-        except ValueError:
-            print('Please answer with y or n')
-
-
 class CreateSuperUser(Command):
     def run(self):
         email = raw_input('Enter user email: ')

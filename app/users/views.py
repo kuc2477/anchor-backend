@@ -21,15 +21,7 @@ from .models import User
 # users blueprint
 users = Blueprint('users', __name__)
 users_api = Api(users)
-
 users_api.add_resource(User.Resource, '/users/<int:id>')
-users_api.add_resource(User.ListResource, '/users')
-
-
-@users.route('/')
-@login_required
-def index():
-    return 'LOGINNED (INDEX PAGE)'
 
 
 @users.route('/login', methods=['POST'])
@@ -44,11 +36,31 @@ def login():
     else:
         abort(401)
 
+
 @users.route('/logout', methods=['POST'])
 def logout():
     serialized = current_user.serialized
     logout_user()
     return jsonify({ 'user': serialized })
+
+
+@users.route('/register', methods=['POST'])
+def register():
+    email = request.form['email']
+    firstname = request.form['firstname']
+    lastname = request.form['lastname']
+    password = request.form['password']
+    password_check = request.form['password_check']
+
+    password_ok = password == password_check
+    already_exists = User.query.filter_by(email=email).first
+
+    if not password_ok or already_exists:
+        abort(400)
+
+@users.route('/confirm', methods=['GET'])
+def confirm():
+    pass
 
 @users.route('/userinfo', methods=['GET'])
 def user_info():

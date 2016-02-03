@@ -7,6 +7,7 @@ from marshmallow import (
     Schema as MarshmallowSchema,
     fields
 )
+import sqlalchemy as sa
 from sqlalchemy_utils.types.choice import ChoiceType
 from flask.ext.login import UserMixin
 from flask.ext.restful.reqparse import RequestParser
@@ -32,14 +33,23 @@ class User(UserMixin, db.Model):
     lastname = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
+
     role = db.Column(ChoiceType(ROLES), nullable=False, default=USER)
+    registered_on = db.Column(db.DateTime, nullable=False)
+    confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    confirmed_on = db.Column(db.DateTime, nullable=True)
 
     def __init__(self, firstname='', lastname='', email='', password='',
-                 type=USER):
+                 role=USER, confirmed=False, confirmed_on=None):
         self.firstname = firstname.title()
         self.lastname = lastname.title()
         self.email = email.lower()
         self.set_password(password)
+
+        self.role = role
+        self.registered_on = sa.func.current_timestamp()
+        self.confirmed = confirmed
+        self.confirmed_on = confirmed_on
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -112,6 +122,11 @@ class User(UserMixin, db.Model):
             return user.serialized, 201
 
 
+# ============
+# Registration
+# ============
+
+
 # ======================
 # Parser argument adders
 # ======================
@@ -125,7 +140,6 @@ def _add_email(parser):
         'email', type=email_type, required=True,
         help='email of ther user'
     )
-
 
 def _add_firstname(parser):
     parser.add_argument(
