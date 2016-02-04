@@ -1,12 +1,17 @@
+from datetime import datetime
+from sqlalchemy.sql import func
 from flask import (
     Blueprint,
     request,
     jsonify,
+    render_template,
+    url_for
 )
 from flask.ext.login import (
     current_user,
     login_user,
     logout_user,
+    login_required,
 )
 from flask.ext.restful import (
     Api,
@@ -15,6 +20,8 @@ from flask.ext.restful import (
 
 from ..extensions import db
 from .models import User
+from .utils import generate_confirmation_token
+from ..utils import send_mail
 
 
 # users blueprint
@@ -30,8 +37,11 @@ def login():
     user = User.query.filter_by(email=email).first_or_404()
 
     if user.check_password(password):
-        login_user(user)
-        return jsonify({'user': user.serialized})
+        if login_user(user):
+            return jsonify({'user': user.serialized})
+        else:
+            reason = 'User account has not been confirmed yet'
+            return jsonify({'reason':reason}), 401
     else:
         abort(401)
 
@@ -45,11 +55,13 @@ def logout():
 
 @users.route('/register', methods=['POST'])
 def register():
-    email = request.form['email']
-    firstname = request.form['firstname']
-    lastname = request.form['lastname']
-    password = request.form['password']
-    password_check = request.form['password_check']
+    args = User.registration_parser.parse_args()
+
+    email = args['email']
+    firstname = args['firstname']
+    lastname = args['lastname']
+    password = args['password']
+    password_check = args['password_check']
 
     password_ok = password == password_check
     already_exists = User.query.filter_by(email=email).first
@@ -57,15 +69,44 @@ def register():
     if not password_ok or already_exists:
         abort(400)
 
-    u = User(firstname, lastname, password)
-    db.session.add(u)
+    # validation passed. register the user
+    user = User(firstname, lastname, password)
+    db.session.add(user)
     db.session.commit()
 
+    # generate confirmation token and email
+    token = generate_confirmation_token(user.email)
+    url = url_for('users.confirm', token=token, _external=True)
+    html = render_template('users/confirm_email.html', 
+                           url=url, date=datetime.now())
+    subject = '[Anchor] Confirm your email account'
 
-@users.route('/confirm', methods=['GET'])
-def confirm():
-    pass
+    # send confirmation email and login the user
+    send_mail(user.email, subject, html)
+    login_user(user)
 
+    return jsonify({'user': user.serialized}), 201
+
+
+@users.route('/confirm/<token>', methods=['GET'])
+@login_required
+def confirm(token):
+    try:
+        email = confirm_token(token)
+    except:
+        reason = 'The confirmation link is invalid or has expired'
+        return jsonify({'reason': reason}), 401
+
+    user = User.query.filter_by(email=email).first_or_404()
+
+    if user.confirmed:
+        message = 'The account has already been confirmed. Please login.'
+        return jsonify({'message': message}), 400
+    else:
+        user.confirmed = True
+        user.confirmed_on = func.now()
+        db.session.commit()
+        return ('', 204)
 
 @users.route('/userinfo', methods=['GET'])
 def user_info():

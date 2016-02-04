@@ -32,6 +32,8 @@ def configure_db(app):
 
 def configure_login(app):
     login_manager.init_app(app)
+    login_manager.login_view = 'users.login'
+    login_manager.login_message = 'Please log in to Anchor to enter this page!'
 
     from .users.models import User
 

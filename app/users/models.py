@@ -7,7 +7,7 @@ from marshmallow import (
     Schema as MarshmallowSchema,
     fields
 )
-import sqlalchemy as sa
+from sqlalchemy.sql import func
 from sqlalchemy_utils.types.choice import ChoiceType
 from flask.ext.login import UserMixin
 from flask.ext.restful.reqparse import RequestParser
@@ -47,7 +47,7 @@ class User(UserMixin, db.Model):
         self.set_password(password)
 
         self.role = role
-        self.registered_on = sa.func.current_timestamp()
+        self.registered_on = func.now()
         self.confirmed = confirmed
         self.confirmed_on = confirmed_on
 
@@ -56,6 +56,10 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    @property
+    def is_active(self):
+        return self.confirmed
 
     @property
     def serialized(self):
@@ -83,6 +87,7 @@ class User(UserMixin, db.Model):
         id = fields.Int()
         firstname = fields.Str()
         lastname = fields.Str()
+        confirmed = fields.Bool()
 
     class Resource(RESTResource):
         def get(self, id):
@@ -101,30 +106,6 @@ class User(UserMixin, db.Model):
             user.lastname = args['lastname']
             db.session.commit()
             return user.serialized
-
-    class ListResource(Resource):
-
-        def post(self):
-            args = User.registration_parser.parse_args()
-
-            password_checked = args['password'] == args['password_check']
-            already_exists = User.query.filter_by(email=args['email']).first()
-
-            if not password_checked or already_exists:
-                abort(400)
-
-            user = User(
-                args['firstname'], args['lastname'],
-                args['email'], args['password']
-            )
-            db.session.add(user)
-            db.session.commit()
-            return user.serialized, 201
-
-
-# ============
-# Registration
-# ============
 
 
 # ======================

@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 from __future__ import print_function
-from builtins import input
 import os
 import base64
 from distutils.util import strtobool
 from getpass import getpass
 
+try:
+    input = raw_input
+except NameError:
+    pass
 
 DEFAULT_DB_NAME = 'anchor'
 DEFAULT_DB_USERNAME = 'postgres'
