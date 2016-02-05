@@ -1,11 +1,9 @@
 from datetime import datetime
-from sqlalchemy.sql import func
 from flask import (
     Blueprint,
     request,
     jsonify,
-    render_template,
-    url_for
+    current_app,
 )
 from flask.ext.login import (
     current_user,
@@ -20,12 +18,11 @@ from flask.ext.restful import (
 
 from ..extensions import db
 from .models import User
-from .utils import generate_confirmation_token
-from ..utils import send_mail
+from .utils import send_confirmation_mail
 
 
 # users blueprint
-users = Blueprint('users', __name__)
+users = Blueprint('users', __name__, template_folder='templates')
 users_api = Api(users)
 users_api.add_resource(User.Resource, '/users/<int:id>')
 
@@ -53,43 +50,38 @@ def logout():
     return jsonify({'user': serialized})
 
 
-@users.route('/register', methods=['POST'])
-def register():
-    args = User.registration_parser.parse_args()
+@users.route('/signup', methods=['POST'])
+def signup():
+    args = User.registration_parser.parse_args(request)
 
     email = args['email']
     firstname = args['firstname']
     lastname = args['lastname']
     password = args['password']
-    password_check = args['password_check']
+    password_validation = args['password_validation']
 
-    password_ok = password == password_check
-    already_exists = User.query.filter_by(email=email).first
+    password_ok = password == password_validation
+    already_exists = User.query.filter_by(email=email).first()
 
     if not password_ok or already_exists:
-        abort(400)
+        reason = 'Password validation failed' if not password_ok else \
+            'Email already exists'
+
+        return jsonify({'reason': reason}), 400
 
     # validation passed. register the user
-    user = User(firstname, lastname, password)
+    user = User(email, firstname, lastname, password)
     db.session.add(user)
     db.session.commit()
 
-    # generate confirmation token and email
-    token = generate_confirmation_token(user.email)
-    url = url_for('users.confirm', token=token, _external=True)
-    html = render_template('users/confirm_email.html', 
-                           url=url, date=datetime.now())
-    subject = '[Anchor] Confirm your email account'
-
     # send confirmation email and login the user
-    send_mail(user.email, subject, html)
+    send_confirmation_mail(user)
     login_user(user)
 
     return jsonify({'user': user.serialized}), 201
 
 
 @users.route('/confirm/<token>', methods=['GET'])
-@login_required
 def confirm(token):
     try:
         email = confirm_token(token)

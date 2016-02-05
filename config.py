@@ -12,8 +12,8 @@ from secret import (
 
 
 class Base(object):
-    # Project name
     PROJECT_NAME = 'anchor-backend'
+    SERVICE_NAME = 'Anchor'
 
     # Mode
     ADMIN = False

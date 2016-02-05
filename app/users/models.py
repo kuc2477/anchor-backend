@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
     confirmed = db.Column(db.Boolean, nullable=False, default=False)
     confirmed_on = db.Column(db.DateTime, nullable=True)
 
-    def __init__(self, firstname='', lastname='', email='', password='',
+    def __init__(self, email='', firstname='', lastname='', password='',
                  role=USER, confirmed=False, confirmed_on=None):
         self.firstname = firstname.title()
         self.lastname = lastname.title()
@@ -69,11 +69,11 @@ class User(UserMixin, db.Model):
     @classproperty
     def registration_parser(cls):
         parser = RequestParser()
-        _add_email(parser)
-        _add_firstname(parser)
-        _add_lastname(parser)
-        _add_password(parser)
-        _add_password_check(parser)
+        _add_email(parser, location='form')
+        _add_firstname(parser, location='form')
+        _add_lastname(parser, location='form')
+        _add_password(parser, location='form')
+        _add_password_validation(parser, location='form')
         return parser
 
     @classproperty
@@ -112,40 +112,41 @@ class User(UserMixin, db.Model):
 # Parser argument adders
 # ======================
 
-def _add_email(parser):
+def _add_email(parser, **kwargs):
     def email_type(value):
         if not validators.email(value):
             raise ValueError('Invalid email format')
         return value
+
     parser.add_argument(
         'email', type=email_type, required=True,
-        help='email of ther user'
+        help='email of ther user', **kwargs
     )
 
 
-def _add_firstname(parser):
+def _add_firstname(parser, **kwargs):
     parser.add_argument(
         'firstname', type=str, required=True,
-        help='firstname of the user'
+        help='firstname of the user', **kwargs
     )
 
 
-def _add_lastname(parser):
+def _add_lastname(parser, **kwargs):
     parser.add_argument(
         'lastname', type=str, required=True,
-        help='lastname of the user'
+        help='lastname of the user', **kwargs
     )
 
 
-def _add_password(parser):
+def _add_password(parser, **kwargs):
     parser.add_argument(
         'password', type=str, required=True,
-        help='password of the user'
+        help='password of the user', **kwargs
     )
 
 
-def _add_password_check(parser):
+def _add_password_validation(parser, **kwargs):
     parser.add_argument(
-        'password_check', type=str, required=True,
-        help='password check for correct password registration'
+        'password_validation', type=str, required=True,
+        help='password validation for correct password registration', **kwargs
     )

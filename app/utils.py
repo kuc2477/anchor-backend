@@ -17,3 +17,9 @@ def send_mail(to, subject, template):
         sender=current_app.config['MAIL_DEFAULT_SENDER']
     )
     mail.send(msg)
+
+def get_project_name():
+    return current_app.config['PROJECT_NAME']
+
+def get_service_name():
+    return current_app.config['SERVICE_NAME']
