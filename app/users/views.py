@@ -4,6 +4,7 @@ from flask import (
     request,
     jsonify,
     current_app,
+    render_template
 )
 from flask.ext.login import (
     current_user,
@@ -78,7 +79,7 @@ def signup():
     send_confirmation_mail(user)
     login_user(user)
 
-    return jsonify({'user': user.serialized}), 201
+    return jsonify({'email': user.email}), 201
 
 
 @users.route('/confirm/<token>', methods=['GET'])
