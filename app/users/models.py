@@ -18,7 +18,7 @@ from flask.ext.restful import (
 
 
 from ..extensions import db
-from ..utils import classproperty
+from ..utils.python import classproperty
 
 
 class User(UserMixin, db.Model):
@@ -51,12 +51,6 @@ class User(UserMixin, db.Model):
         self.confirmed = confirmed
         self.confirmed_on = confirmed_on
 
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
     @property
     def is_active(self):
         return self.confirmed
@@ -66,22 +60,11 @@ class User(UserMixin, db.Model):
         schema = self.Schema()
         return schema.dump(self).data
 
-    @classproperty
-    def registration_parser(cls):
-        parser = RequestParser()
-        _add_email(parser, location='form')
-        _add_firstname(parser, location='form')
-        _add_lastname(parser, location='form')
-        _add_password(parser, location='form')
-        _add_password_validation(parser, location='form')
-        return parser
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
 
-    @classproperty
-    def update_parser(cls):
-        parser = RequestParser()
-        _add_firstname(parser)
-        _add_lastname(parser)
-        return parser
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
 
     class Schema(MarshmallowSchema):
         id = fields.Int()
@@ -106,47 +89,3 @@ class User(UserMixin, db.Model):
             user.lastname = args['lastname']
             db.session.commit()
             return user.serialized
-
-
-# ======================
-# Parser argument adders
-# ======================
-
-def _add_email(parser, **kwargs):
-    def email_type(value):
-        if not validators.email(value):
-            raise ValueError('Invalid email format')
-        return value
-
-    parser.add_argument(
-        'email', type=email_type, required=True,
-        help='email of ther user', **kwargs
-    )
-
-
-def _add_firstname(parser, **kwargs):
-    parser.add_argument(
-        'firstname', type=str, required=True,
-        help='firstname of the user', **kwargs
-    )
-
-
-def _add_lastname(parser, **kwargs):
-    parser.add_argument(
-        'lastname', type=str, required=True,
-        help='lastname of the user', **kwargs
-    )
-
-
-def _add_password(parser, **kwargs):
-    parser.add_argument(
-        'password', type=str, required=True,
-        help='password of the user', **kwargs
-    )
-
-
-def _add_password_validation(parser, **kwargs):
-    parser.add_argument(
-        'password_validation', type=str, required=True,
-        help='password validation for correct password registration', **kwargs
-    )

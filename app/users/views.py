@@ -16,10 +16,21 @@ from flask.ext.restful import (
     Api,
     abort,
 )
-
 from ..extensions import db
 from .models import User
-from .utils import send_confirmation_mail
+from .forms import (
+    AuthenticationForm,
+    SignupForm,
+)
+from .utils import (
+    send_confirmation_mail,
+    confirm_token,
+    get_user_or_404,
+    get_user,
+)
+from ..utils.http import (
+    error, message
+)
 
 
 # users blueprint
@@ -30,18 +41,18 @@ users_api.add_resource(User.Resource, '/users/<int:id>')
 
 @users.route('/login', methods=['POST'])
 def login():
-    email = request.form['email']
-    password = request.form['password']
-    user = User.query.filter_by(email=email).first_or_404()
+    form = AuthenticationForm(request.form)
+    form.validate()
 
-    if user.check_password(password):
-        if login_user(user):
-            return jsonify({'user': user.serialized})
-        else:
-            reason = 'User account has not been confirmed yet'
-            return jsonify({'reason':reason}), 401
-    else:
+    user = User.query.filter_by(email=form.email.data).first_or_404()
+    if not user.check_password(form.password.data):
         abort(401)
+
+    if login_user(user):
+        return jsonify({'user': user.serialized})
+    else:
+        return error('User account has not been confirmed yet', 401,
+                     email=user.email)
 
 
 @users.route('/logout', methods=['POST'])
@@ -53,25 +64,15 @@ def logout():
 
 @users.route('/signup', methods=['POST'])
 def signup():
-    args = User.registration_parser.parse_args(request)
+    form = SignupForm(request.form)
+    form.validate()
 
-    email = args['email']
-    firstname = args['firstname']
-    lastname = args['lastname']
-    password = args['password']
-    password_validation = args['password_validation']
-
-    password_ok = password == password_validation
-    already_exists = User.query.filter_by(email=email).first()
-
-    if not password_ok or already_exists:
-        reason = 'Password validation failed' if not password_ok else \
-            'Email already exists'
-
-        return jsonify({'reason': reason}), 400
+    if get_user(form.email.data):
+        return error('Email already exists')
 
     # validation passed. register the user
-    user = User(email, firstname, lastname, password)
+    user = User(form.email.data, form.firstname.data, form.lastname.data,
+                form.password.data)
     db.session.add(user)
     db.session.commit()
 
@@ -82,6 +83,18 @@ def signup():
     return jsonify({'email': user.email}), 201
 
 
+@users.route('/resend', methods=['POST'])
+def resend():
+    user = get_user_or_404(request.form['email'])
+
+    if not user.confirmed:
+        send_confirmation_mail(user)
+        return '', 201
+
+    else:
+        return error('Account is already confirmed')
+
+
 @users.route('/confirm/<token>', methods=['GET'])
 def confirm(token):
     try:
@@ -90,19 +103,20 @@ def confirm(token):
         reason = 'The confirmation link is invalid or has expired'
         return jsonify({'reason': reason}), 401
 
-    user = User.query.filter_by(email=email).first_or_404()
+    user = get_user_or_404(email)
 
     if user.confirmed:
         message = 'The account has already been confirmed. Please login.'
-        return jsonify({'message': message}), 400
+        return jsonify({'reason': message}), 400
     else:
         user.confirmed = True
-        user.confirmed_on = func.now()
+        user.confirmed_on = datetime.utcnow()
         db.session.commit()
-        return ('', 204)
+        return '', 204
+
 
 @users.route('/userinfo', methods=['GET'])
-def user_info():
+def userinfo():
     if current_user.is_authenticated:
         return jsonify({'user': current_user.serialized})
     else:

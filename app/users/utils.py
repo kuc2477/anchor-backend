@@ -7,10 +7,17 @@ from flask import (
     render_template
 )
 
-from ..utils import (
-    get_service_name,
-    send_mail
-)
+from ..utils.meta import get_service_name
+from ..utils.mail import send_mail
+from .models import User
+
+
+def get_user(email):
+    return User.query.filter_by(email=email).first()
+
+
+def get_user_or_404(email):
+    return User.query.filter_by(email=email).first_or_404()
 
 
 def generate_confirmation_token(email):
