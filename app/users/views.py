@@ -3,14 +3,12 @@ from flask import (
     Blueprint,
     request,
     jsonify,
-    current_app,
     render_template
 )
 from flask.ext.login import (
     current_user,
     login_user,
     logout_user,
-    login_required,
 )
 from flask.ext.restful import (
     Api,
@@ -28,9 +26,7 @@ from .utils import (
     get_user_or_404,
     get_user,
 )
-from ..utils.http import (
-    error, message
-)
+from ..utils.http import error
 
 
 # users blueprint
@@ -51,8 +47,8 @@ def login():
     if login_user(user):
         return jsonify({'user': user.serialized})
     else:
-        return error('User account has not been confirmed yet', 401,
-                     email=user.email)
+        return error('User account has not been confirmed yet',
+                     401, email=user.email)
 
 
 @users.route('/logout', methods=['POST'])
@@ -100,19 +96,28 @@ def confirm(token):
     try:
         email = confirm_token(token)
     except:
-        reason = 'The confirmation link is invalid or has expired'
-        return jsonify({'reason': reason}), 401
-
-    user = get_user_or_404(email)
-
-    if user.confirmed:
-        message = 'The account has already been confirmed. Please login.'
-        return jsonify({'reason': message}), 400
+        # confimation token expired
+        return render_template(
+            'users/confirm_mail_expired',
+            date=datetime.now()
+        )
     else:
-        user.confirmed = True
-        user.confirmed_on = datetime.utcnow()
-        db.session.commit()
-        return '', 204
+        # already confirmed
+        user = get_user_or_404(email)
+        if user.confirmed:
+            return render_template(
+                'users/already_confirmed.html',
+                date=datetime.now()
+            )
+        # confirmed
+        else:
+            user.confirmed = True
+            user.confirmed_on = datetime.utcnow()
+            db.session.commit()
+            return render_template(
+                'users/confirmed.html',
+                date=datetime.now()
+            )
 
 
 @users.route('/userinfo', methods=['GET'])

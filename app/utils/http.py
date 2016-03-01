@@ -6,6 +6,7 @@ def error(reason, code=400, **kwargs):
     payload.update(kwargs)
     return jsonify(payload), code
 
+
 def message(message, code=200, **kwargs):
     payload = {'message': message}
     payload.update(kwargs)
