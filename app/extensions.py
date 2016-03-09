@@ -1,8 +1,9 @@
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
-from flask_mail import Mail
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
+from flask.ext.marshmallow import Marshmallow
+from flask.ext.mail import Mail
+from flask.ext.admin import Admin
+from flask.ext.admin.contrib.sqla import ModelView
 
 
 # ===================
@@ -11,6 +12,9 @@ from flask_admin.contrib.sqla import ModelView
 
 # app db instance
 db = SQLAlchemy()
+
+# marshmallow instance
+ma = Marshmallow()
 
 # app login manager instance
 login_manager = LoginManager()
@@ -28,6 +32,10 @@ admin = Admin()
 
 def configure_db(app):
     db.init_app(app)
+
+
+def configure_ma(app):
+    ma.init_app(app)
 
 
 def configure_login(app):

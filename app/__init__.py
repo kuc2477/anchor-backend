@@ -2,10 +2,12 @@ from flask import Flask
 
 from .extensions import (
     configure_db,
+    configure_ma,
     configure_login,
     configure_mail,
     configure_admin
 )
+from .schedules.views import schedules
 from .users.views import users
 
 
@@ -18,20 +20,22 @@ def create_app(cfg):
 
     # configure extensions on app
     configure_db(app)
+    configure_ma(app)
     configure_login(app)
     configure_mail(app)
+
+    # configure admin extension only when in admin mode
     if config.ADMIN:
         configure_admin(app)
 
     # register blueprints
-    register_blueprints(app, users)
+    register_blueprints(app, users, schedules)
 
     return app
 
 
 def register_blueprints(app, *blueprints):
-    for bp in blueprints:
-        app.register_blueprint(bp)
+    [app.register_blueprint(bp) for bp in blueprints]
 
 
 def get_config(cfg):

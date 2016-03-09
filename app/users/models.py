@@ -1,24 +1,18 @@
-import validators
 from werkzeug import (
     generate_password_hash,
     check_password_hash
 )
-from marshmallow import (
-    Schema as MarshmallowSchema,
-    fields
-)
 from sqlalchemy.sql import func
 from sqlalchemy_utils.types.choice import ChoiceType
 from flask.ext.login import UserMixin
-from flask.ext.restful.reqparse import RequestParser
 from flask.ext.restful import (
-    Resource as RESTResource,
-    abort
+    Resource,
+    reqparse
 )
-
-
-from ..extensions import db
-from ..utils.python import classproperty
+from ..extensions import (
+    db,
+    ma
+)
 
 
 class User(UserMixin, db.Model):
@@ -57,7 +51,7 @@ class User(UserMixin, db.Model):
 
     @property
     def serialized(self):
-        schema = self.Schema()
+        schema = UserSchema()
         return schema.dump(self).data
 
     def set_password(self, password):
@@ -66,13 +60,13 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    class Schema(MarshmallowSchema):
-        id = fields.Int()
-        firstname = fields.Str()
-        lastname = fields.Str()
-        confirmed = fields.Bool()
 
-    class Resource(RESTResource):
+class UserSchema(ma.ModelSchema):
+    class Meta:
+        model = User
+
+
+class UserResource(Resource):
         def get(self, id):
             user = User.query.get_or_404(id)
             return user.serialized
@@ -83,7 +77,11 @@ class User(UserMixin, db.Model):
             return '', 204
 
         def put(self, id):
-            args = User.update_parser.parse_args()
+            parser = reqparse.RequestParser()
+            parser.add_argument('firstname')
+            parser.add_argument('lastname')
+            args = parser.parse_args()
+
             user = User.query.get_or_404(id)
             user.firstname = args['firstname']
             user.lastname = args['lastname']

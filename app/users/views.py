@@ -10,14 +10,16 @@ from flask.ext.login import (
     current_user,
     login_user,
     logout_user,
-    login_required,
 )
 from flask.ext.restful import (
     Api,
     abort,
 )
 from ..extensions import db
-from .models import User
+from .models import (
+    User,
+    UserResource
+)
 from .forms import (
     AuthenticationForm,
     SignupForm,
@@ -36,7 +38,7 @@ from ..utils.http import (
 # users blueprint
 users = Blueprint('users', __name__, template_folder='templates')
 users_api = Api(users)
-users_api.add_resource(User.Resource, '/users/<int:id>')
+users_api.add_resource(UserResource, '/users/<int:id>')
 
 
 @users.route('/login', methods=['POST'])
