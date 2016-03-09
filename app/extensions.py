@@ -55,9 +55,20 @@ def configure_mail(app):
 
 
 def configure_admin(app):
-    class UserModelView(ModelView):
-        form_excluded_columns = ['password_hash']
+    user_model_view = type(
+        'UserModelView', (ModelView,),
+        {'form_excluded_columns': ['password_hash']}
+    )
+    schedule_model_view = type('ScheduleModelView', (ModelView,), {})
+    news_model_viwe = type('NewsModelView', (ModelView,), {})
 
     from .users.models import User
+    from .schedules.models import Schedule
+    from .news.models import News
+
     admin.init_app(app)
-    admin.add_view(UserModelView(User, db.session))
+    admin.add_views(
+        user_model_view(User, db.session),
+        schedule_model_view(Schedule, db.session),
+        news_model_viwe(News, db.session)
+    )

@@ -7,8 +7,9 @@ from .extensions import (
     configure_mail,
     configure_admin
 )
-from .schedules.views import schedules
-from .users.views import users
+from .users.views import bp as users_bp
+from .schedules.views import bp as schedules_bp
+from .news.views import bp as news_bp
 
 
 def create_app(cfg):
@@ -29,7 +30,7 @@ def create_app(cfg):
         configure_admin(app)
 
     # register blueprints
-    register_blueprints(app, users, schedules)
+    register_blueprints(app, users_bp, schedules_bp, news_bp)
 
     return app
 

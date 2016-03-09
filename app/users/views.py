@@ -33,12 +33,12 @@ from ..utils.http import error
 
 
 # users blueprint
-users = Blueprint('users', __name__, template_folder='templates')
-users_api = Api(users)
-users_api.add_resource(UserResource, '/users/<int:id>')
+bp = Blueprint('users_bp', __name__, template_folder='templates')
+api = Api(bp)
+api.add_resource(UserResource, '/users/<int:id>')
 
 
-@users.route('/login', methods=['POST'])
+@bp.route('/login', methods=['POST'])
 def login():
     form = AuthenticationForm(request.form)
     form.validate()
@@ -54,14 +54,14 @@ def login():
                      401, email=user.email)
 
 
-@users.route('/logout', methods=['POST'])
+@bp.route('/logout', methods=['POST'])
 def logout():
     serialized = current_user.serialized
     logout_user()
     return jsonify({'user': serialized})
 
 
-@users.route('/signup', methods=['POST'])
+@bp.route('/signup', methods=['POST'])
 def signup():
     form = SignupForm(request.form)
     form.validate()
@@ -82,7 +82,7 @@ def signup():
     return jsonify({'email': user.email}), 201
 
 
-@users.route('/resend', methods=['POST'])
+@bp.route('/resend', methods=['POST'])
 def resend():
     user = get_user_or_404(request.form['email'])
 
@@ -94,7 +94,7 @@ def resend():
         return error('Account is already confirmed')
 
 
-@users.route('/confirm/<token>', methods=['GET'])
+@bp.route('/confirm/<token>', methods=['GET'])
 def confirm(token):
     try:
         email = confirm_token(token)
@@ -123,7 +123,7 @@ def confirm(token):
             )
 
 
-@users.route('/userinfo', methods=['GET'])
+@bp.route('/userinfo', methods=['GET'])
 def userinfo():
     if current_user.is_authenticated:
         return jsonify({'user': current_user.serialized})
