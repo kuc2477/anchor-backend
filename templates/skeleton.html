@@ -10,12 +10,12 @@
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
         {% block csrf %}{% endblock csrf %}
+        {% block vendor %}{% endblock vendor %}
         {% block app_bootstrap %}{% endblock app_bootstrap %}
-        {% block app_default_styles %}{% endblock app_default_styles %}
         {% block app_main_styles %} {% endblock app_main_styles %}
         {% block app_main_scripts %}{% endblock app_main_scripts %}
     </head>
-    <body> 
+    <body>
         {% block content %}{% endblock content %}
         <script>
             (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
