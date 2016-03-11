@@ -8,6 +8,7 @@ Flask-Admin==1.4.0
 Flask-Mail==0.9.1
 flask-marshmallow==0.6.2
 marshmallow-sqlalchemy==0.8.1
+celery==3.1.20
 
 SQLAlchemy-Utils==0.31.6
 psycopg2==2.6.1

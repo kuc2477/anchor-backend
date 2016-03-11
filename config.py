@@ -27,6 +27,9 @@ class Base(object):
             DB_USERNAME, DB_PASSWORD, DB_NAME
         )
 
+    # Celery
+    CELERY_BROKER_URL = None
+
     # Session
     SECRET_SALT = SECRET_SALT
     SECRET_KEY = SECRET_KEY

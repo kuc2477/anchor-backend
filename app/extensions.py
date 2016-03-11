@@ -72,3 +72,7 @@ def configure_admin(app):
         schedule_model_view(Schedule, db.session),
         news_model_viwe(News, db.session)
     )
+
+
+def register_blueprints(app, *blueprints):
+    [app.register_blueprint(bp) for bp in blueprints]
