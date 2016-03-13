@@ -19,7 +19,7 @@ from app.extensions import db
 app = create_app(Dev)
 celery = create_celery(app)
 news_backend = create_news_backend(app)
-news_scheduler = create_news_scheduler(app, news_backend, celery)
+news_scheduler = create_news_scheduler(news_backend, celery)
 
 manager = Manager(app)
 migrate = Migrate(app, db)

@@ -74,7 +74,7 @@ def create_news_backend(app):
     )
 
 
-def create_news_scheduler(app, backend, celery):
+def create_news_scheduler(backend, celery):
     return Scheduler(backend, celery)
 
 
