@@ -8,8 +8,7 @@ from flask.ext.restful import (
 from ..utils.ma import JSONTypeCoverter
 from ..users.models import User
 from ..extensions import (
-    db,
-    ma,
+    db, ma, persister
 )
 
 
@@ -20,7 +19,7 @@ class ABCSchedule(create_abc_schedule(User)):
         return schema.dump(self).data
 
 
-Schedule = create_schedule(ABCSchedule, db.Model)
+Schedule = create_schedule(ABCSchedule, db.Model, persister=persister)
 
 
 class ScheduleSchema(ma.ModelSchema):
