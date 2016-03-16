@@ -1,5 +1,15 @@
+from sqlalchemy import (
+    Column, Text
+)
 from news.models.sqlalchemy import (
     create_abc_schedule, create_schedule
+)
+from news.constants import (
+    DEFAULT_SCHEDULE_CYCLE,
+    DEFAULT_MAX_DIST,
+    DEFAULT_MAX_DEPTH,
+    DEFAULT_BLACKLIST,
+    DEFAULT_BROTHERS
 )
 from flask.ext.restful import (
     Resource,
@@ -13,6 +23,22 @@ from ..extensions import (
 
 
 class ABCSchedule(create_abc_schedule(User)):
+    def __init__(self, name='', owner=None, url='',
+                 cycle=DEFAULT_SCHEDULE_CYCLE,
+                 max_dist=DEFAULT_MAX_DIST, max_depth=DEFAULT_MAX_DEPTH,
+                 blacklist=DEFAULT_BLACKLIST, brothers=DEFAULT_BROTHERS):
+        self.name = name
+        super().__init__(owner=owner, url=url, cycle=cycle,
+                         max_dist=max_dist, max_depth=max_depth,
+                         blacklist=blacklist, brother=brothers)
+
+    def __str__(self):
+        return '{}\'s schedule {} {}'.format(
+            self.owner.fullname if self.owner else 'Anonymous',
+            self.name, self.url)
+
+    name = Column(Text, nullable=False, default='')
+
     @property
     def serialized(self):
         schema = ScheduleSchema()

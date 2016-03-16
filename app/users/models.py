@@ -45,6 +45,9 @@ class User(UserMixin, db.Model):
         self.confirmed = confirmed
         self.confirmed_on = confirmed_on
 
+    def __str__(self):
+        return '{} - {}'.format(self.fullname, self.email)
+
     @property
     def is_active(self):
         return self.confirmed
@@ -53,6 +56,10 @@ class User(UserMixin, db.Model):
     def serialized(self):
         schema = UserSchema()
         return schema.dump(self).data
+
+    @property
+    def fullname(self):
+        return '{} {}'.format(self.firstname, self.lastname)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

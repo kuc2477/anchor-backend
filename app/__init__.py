@@ -13,10 +13,10 @@ from .extensions import (
     register_blueprints
 )
 from .users.views import bp as users_bp
-from .users.models import User
 from .schedules.views import bp as schedules_bp
-from .schedules.models import Schedule
 from .news.views import bp as news_bp
+from .users.models import User
+from .schedules.models import Schedule
 from .news.models import News
 
 
