@@ -60,7 +60,7 @@ def configure_admin(app):
         {'form_excluded_columns': ['password_hash']}
     )
     schedule_model_view = type('ScheduleModelView', (ModelView,), {})
-    news_model_viwe = type('NewsModelView', (ModelView,), {})
+    news_model_view = type('NewsModelView', (ModelView,), {})
 
     from .users.models import User
     from .schedules.models import Schedule
@@ -70,7 +70,7 @@ def configure_admin(app):
     admin.add_views(
         user_model_view(User, db.session),
         schedule_model_view(Schedule, db.session),
-        news_model_viwe(News, db.session)
+        news_model_view(News, db.session)
     )
 
 

@@ -43,12 +43,14 @@ class CreateSuperUser(Command):
 
 class RunCeleryServer(Command):
     def run(self):
-        celery.worker_main(['worker'])
+        with app.app_context():
+            celery.worker_main(['worker'])
 
 
 class RunNewsScheduler(Command):
     def run(self):
-        news_scheduler.start()
+        with app.app_context():
+            news_scheduler.start()
 
 
 manager.add_command('db', MigrateCommand)
