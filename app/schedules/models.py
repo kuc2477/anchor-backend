@@ -15,13 +15,15 @@ from flask.ext.restful import (
     Resource,
     reqparse
 )
-from ..utils.ma import JSONTypeCoverter
+from ..utils.ma import get_base_schema
+from ..utils.restful import PaginatedResource
 from ..users.models import User
-from ..extensions import (
-    db,
-    ma,
-)
+from ..extensions import db
 
+
+# ==============
+# Model & Schema
+# ==============
 
 class ABCSchedule(create_abc_schedule(User)):
     def __init__(self, name='', owner=None, url='',
@@ -47,13 +49,12 @@ class ABCSchedule(create_abc_schedule(User)):
 
 
 Schedule = create_schedule(ABCSchedule, db.Model)
+ScheduleSchema = get_base_schema(Schedule)
 
 
-class ScheduleSchema(ma.ModelSchema):
-    class Meta:
-        model = Schedule
-        model_converter = JSONTypeCoverter
-
+# =========
+# Resources
+# =========
 
 class ScheduleResource(Resource):
     def get(self, id):
@@ -70,12 +71,12 @@ class ScheduleResource(Resource):
 
     def put(self, id):
         parser = reqparse.RequestParser()
-        parser.add_argument('url')
-        parser.add_argument('cycle')
-        parser.add_argument('max_dist')
-        parser.add_argument('max_depth')
-        parser.add_argument('brothers')
-        parser.add_argument('blacklist')
+        parser.add_argument('url', type=str)
+        parser.add_argument('cycle', type=int)
+        parser.add_argument('max_dist', type=int)
+        parser.add_argument('max_depth', type=int)
+        parser.add_argument('brothers', type=list)
+        parser.add_argument('blacklist', type=list)
 
         args = parser.parse_args()
         schedule = self.query.get_or_404(id)
@@ -86,3 +87,8 @@ class ScheduleResource(Resource):
         schedule.brothers = args['brothers']
         schedule.blacklist = args['blacklist']
         db.session.commit()
+
+
+class ScheduleListResource(PaginatedResource):
+    model = Schedule
+    schema = ScheduleSchema
