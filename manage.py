@@ -1,5 +1,6 @@
 from __future__ import print_function
 from __future__ import absolute_import
+import os
 import subprocess
 import shutil
 from getpass import getpass
@@ -61,12 +62,15 @@ class RunScheduler(Command):
 
 class RunRedis(Command):
     def run(self):
-        subprocess.call(['redis-server', 'start'])
+        subprocess.call(['redis-server'])
 
 
 class RunBroker(Command):
     def run(self):
-        subprocess.call([shutil.which('rabbitmq-server'), 'start'])
+        if 'nt' in os.name:
+            subprocess.call([shutil.which('rabbitmq-server'), 'start'])
+        else:
+            subprocess.call(['sudo', shutil.which('rabbitmq-server'), 'start'])
 
 
 # Register commands
