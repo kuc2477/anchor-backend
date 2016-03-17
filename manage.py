@@ -1,5 +1,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
+import subprocess
+import shutil
 from getpass import getpass
 
 from flask.ext.script import Manager, Command
@@ -45,7 +47,7 @@ class CreateSuperUser(Command):
             db.session.commit()
 
 
-class RunCeleryServer(Command):
+class RunCelery(Command):
     def run(self):
         with app.app_context():
             celery.worker_main(['worker'])
@@ -59,19 +61,20 @@ class RunScheduler(Command):
 
 class RunRedis(Command):
     def run(self):
-        pass
+        subprocess.call(['redis-server', 'start'])
 
 
 class RunBroker(Command):
     def run(self):
-        pass
+        subprocess.call([shutil.which('rabbitmq-server'), 'start'])
 
 
 # Register commands
 manager.add_command('db', MigrateCommand)
 manager.add_command('createsuperuser', CreateSuperUser)
-manager.add_command('runcelery', RunCeleryServer)
 manager.add_command('runscheduler', RunScheduler)
+manager.add_command('runcelery', RunCelery)
+manager.add_command('runbroker', RunBroker)
 manager.add_command('runredis', RunRedis)
 
 
