@@ -1,10 +1,11 @@
+from redis import Redis
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
 from flask.ext.marshmallow import Marshmallow
 from flask.ext.mail import Mail
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
-
+from news.persistence import SchedulePersister
 
 # ===================
 # Extension instances
@@ -24,6 +25,12 @@ mail = Mail()
 
 # admin instance
 admin = Admin()
+
+# redis instance
+redis = Redis()
+
+# schedule persister
+persister = SchedulePersister(redis)
 
 
 # =============

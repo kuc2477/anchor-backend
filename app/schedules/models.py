@@ -18,7 +18,9 @@ from flask.ext.restful import (
 from ..utils.ma import get_base_schema
 from ..utils.restful import PaginatedResource
 from ..users.models import User
-from ..extensions import db
+from ..extensions import (
+    db, persister
+)
 
 
 # ==============
@@ -48,7 +50,7 @@ class ABCSchedule(create_abc_schedule(User)):
         return schema.dump(self).data
 
 
-Schedule = create_schedule(ABCSchedule, db.Model)
+Schedule = create_schedule(ABCSchedule, db.Model, persister=persister)
 ScheduleSchema = get_base_schema(Schedule)
 
 

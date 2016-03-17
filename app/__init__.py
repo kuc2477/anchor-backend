@@ -4,7 +4,7 @@ from news.backends.sqlalchemy import SQLAlchemyBackend
 from news.scheduler import Scheduler
 
 from .extensions import (
-    db,
+    db, persister,
     configure_db,
     configure_ma,
     configure_login,
@@ -75,7 +75,7 @@ def create_news_backend(app):
 
 
 def create_news_scheduler(backend, celery):
-    return Scheduler(backend, celery)
+    return Scheduler(backend, celery, persister=persister)
 
 
 def get_config(cfg):

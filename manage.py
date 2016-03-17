@@ -25,6 +25,10 @@ manager = Manager(app)
 migrate = Migrate(app, db)
 
 
+# ========
+# Commands
+# ========
+
 class CreateSuperUser(Command):
     def run(self):
         email = input('Enter user email: ')
@@ -47,16 +51,28 @@ class RunCeleryServer(Command):
             celery.worker_main(['worker'])
 
 
-class RunNewsScheduler(Command):
+class RunScheduler(Command):
     def run(self):
         with app.app_context():
             news_scheduler.start()
 
 
+class RunRedis(Command):
+    def run(self):
+        pass
+
+
+class RunBroker(Command):
+    def run(self):
+        pass
+
+
+# Register commands
 manager.add_command('db', MigrateCommand)
 manager.add_command('createsuperuser', CreateSuperUser)
 manager.add_command('runcelery', RunCeleryServer)
-manager.add_command('runscheduler', RunNewsScheduler)
+manager.add_command('runscheduler', RunScheduler)
+manager.add_command('runredis', RunRedis)
 
 
 if __name__ == "__main__":
