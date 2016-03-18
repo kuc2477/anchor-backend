@@ -35,7 +35,7 @@ class ABCSchedule(create_abc_schedule(User)):
         self.name = name
         super().__init__(owner=owner, url=url, cycle=cycle,
                          max_dist=max_dist, max_depth=max_depth,
-                         blacklist=blacklist, brother=brothers)
+                         blacklist=blacklist, brothers=brothers)
 
     def __str__(self):
         return '{}\'s schedule {} {}'.format(
