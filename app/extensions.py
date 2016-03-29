@@ -5,7 +5,7 @@ from flask.ext.marshmallow import Marshmallow
 from flask.ext.mail import Mail
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
-from news.persistence import SchedulePersister
+from news.persister import SchedulePersister
 
 # ===================
 # Extension instances
