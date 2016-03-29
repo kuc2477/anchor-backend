@@ -51,10 +51,10 @@ def create_celery(app):
     )
     celery.conf.update(app.config)
 
+    # add support for flask's app context to celery
     TaskBase = celery.Task
 
     class ContextTask(TaskBase):
-        """Adds support for Flask's app contexts"""
         abstract = True
 
         def __call__(self, *args, **kwargs):
@@ -62,6 +62,7 @@ def create_celery(app):
                 return TaskBase.__call__(self, *args, **kwargs)
 
     celery.Task = ContextTask
+
     return celery
 
 

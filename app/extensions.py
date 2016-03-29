@@ -82,4 +82,4 @@ def configure_admin(app):
 
 
 def register_blueprints(app, *blueprints):
-    [app.register_blueprint(bp) for bp in blueprints]
+    [app.register_blueprint(bp, url_prefix='/api') for bp in blueprints]
