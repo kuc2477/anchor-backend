@@ -9,14 +9,14 @@ from flask.ext.script import Manager, Command
 from flask.ext.migrate import Migrate, MigrateCommand
 
 from config import Dev
-from app import (
+from app.server import (
     create_app,
     create_celery,
     create_news_backend,
     create_news_scheduler
 )
-from app.users.models import User
-from app.extensions import db
+from app.server.users.models import User
+from app.server import db
 
 
 app = create_app(Dev)
