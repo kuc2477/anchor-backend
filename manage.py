@@ -8,7 +8,7 @@ from getpass import getpass
 from flask.ext.script import Manager, Command
 from flask.ext.migrate import Migrate, MigrateCommand
 
-from config import Dev
+import config
 from components.server import (
     create_app,
     create_celery,
@@ -19,7 +19,13 @@ from components.server.users.models import User
 from components.server import db
 
 
-app = create_app(Dev)
+try:
+    config_name = os.environ['ANCHOR_CONFIG'].title()
+except KeyError:
+    config_name = 'Dev'
+
+
+app = create_app(getattr(config, config_name))
 celery = create_celery(app)
 news_backend = create_news_backend(app)
 news_scheduler = create_news_scheduler(news_backend, celery)
