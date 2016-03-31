@@ -4,7 +4,6 @@ import os
 import subprocess
 import shutil
 from getpass import getpass
-
 from flask.ext.script import Manager, Command
 from flask.ext.migrate import Migrate, MigrateCommand
 
@@ -12,11 +11,13 @@ import config
 from components.server import (
     create_app,
     create_celery,
+)
+from components.scheduler import (
     create_news_backend,
     create_news_scheduler
 )
 from components.server.users.models import User
-from components.server import db
+from components.server.extensions import db
 
 
 try:

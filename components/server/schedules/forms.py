@@ -1,27 +1,32 @@
 from wtforms import (
-    Form, TextField
+    Form,
+    StringField,
+    IntegerField,
+    FieldList,
 )
 from wtforms.validators import (
-    Email,
-    Length,
-    EqualTo,
+    URL,
+    NumberRange,
+    Length
 )
 from ..utils.form import abort_on_validation_fail
 
 
-@abort_on_validation_fail
-class ScheduleCreateForm(Form):
-    # TODO: NOT IMPLEMENTED YET
-    pass
+class BaseScheduleForm(Form):
+    name = StringField('Name', [Length(min=2, max=50)])
+    url = StringField('Url', [URL()])
+    cycle = IntegerField('Cycle', [NumberRange(min=5, max=600)])
+    max_depth = IntegerField('Max depth', [NumberRange(max=5)])
+    max_dist = IntegerField('Max distance', [NumberRange(max=5)])
+    brothers = FieldList(StringField('Brother', [URL()]))
+    blacklist = FieldList(StringField('Blacklist', [Length(min=2, max=10)]))
 
 
 @abort_on_validation_fail
-class ScheduleUpdateForm(Form):
-    # TODO: NOT IMPLEMENTED YET
-    pass
+class ScheduleCreateForm(BaseScheduleForm):
+    owner = IntegerField('Owner', [NumberRange(min=0)])
 
 
 @abort_on_validation_fail
-class ScheduleDeleteForm(Form):
-    # TODO: NOT IMPLEMENTED YET
-    pass
+class ScheduleUpdateForm(BaseScheduleForm):
+    id = IntegerField('Schedule ID')

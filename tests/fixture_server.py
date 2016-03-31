@@ -1,4 +1,5 @@
 import pytest
+from sqlalchemy.orm import sessionmaker
 from config import Test
 from components.server import create_app
 from components.server.extensions import db as database
@@ -11,12 +12,10 @@ def app():
     # push new flask app context for multi-thread tests to work
     context = application.app_context()
     context.push()
-    database.create_all()
 
     yield application
 
     # pop flask app context and drop database
-    database.drop_all()
     context.pop()
 
 
@@ -25,23 +24,22 @@ def client(app):
     return app.test_client()
 
 
-@pytest.fixture(scope='session')
+@pytest.yield_fixture(scope='session')
 def db(app):
-    # return database created within app context
-    return database
+    database.create_all()
+    yield database
+    database.drop_all()
 
 
 @pytest.yield_fixture(scope='function')
 def session(db):
     connection = db.engine.connect()
+    database.create_scoped_session
     transaction = connection.begin()
+    db.session = session = sessionmaker(bind=connection)()
 
-    test_session_options = dict(bind=connection, binds={})
-    test_session = db.create_scoped_session(options=test_session_options)
-    db.session = test_session
+    yield session
 
-    yield test_session
-
+    session.close()
     transaction.rollback()
     connection.close()
-    test_session.remove()

@@ -4,7 +4,7 @@ from components.server.schedules.models import Schedule
 from components.server.news.models import News
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def owner(request, session):
     u = User(
         email='testemail@test.com',
@@ -14,12 +14,10 @@ def owner(request, session):
     )
     session.add(u)
     session.commit()
-    yield u
-    session.delete(u)
-    session.commit()
+    return u
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def schedule(session, owner):
     s = Schedule(
         name='fixturename',
@@ -28,12 +26,10 @@ def schedule(session, owner):
     )
     session.add(s)
     session.commit()
-    yield s
-    session.delete(s)
-    session.commit()
+    return s
 
 
-@pytest.yield_fixture
+@pytest.fixture
 def news(session, schedule):
     n = News(
         schedule=schedule,
@@ -42,6 +38,4 @@ def news(session, schedule):
     )
     session.add(n)
     session.commit()
-    yield n
-    session.delete(n)
-    session.commit()
+    return n
