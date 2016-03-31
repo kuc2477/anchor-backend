@@ -21,6 +21,11 @@ def app():
 
 
 @pytest.fixture(scope='session')
+def client(app):
+    return app.test_client()
+
+
+@pytest.fixture(scope='session')
 def db(app):
     # return database created within app context
     return database

@@ -1,5 +1,6 @@
 from components.server.schedules.models import Schedule
 from components.server.users.models import User
+from components.server.news.models import News
 
 
 def test_schedule_creation(session, owner):
@@ -23,3 +24,22 @@ def test_schedule_attributes(schedule):
     schedule.max_dist
     assert(isinstance(schedule.brothers, list))
     assert(isinstance(schedule.blacklist, list))
+
+
+def test_news_creation(session, schedule):
+    assert(not News.query.all())
+    news = News(
+        schedule=schedule,
+        url='http://www.naver.com',
+        content='fixturecontent'
+    )
+    session.add(news)
+    session.commit()
+    assert(news in session)
+
+
+def test_news_attributes(news, schedule):
+    assert(news.id)
+    assert(news.url)
+    assert(news.schedule == schedule)
+    assert(news.content)
