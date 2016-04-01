@@ -1,17 +1,5 @@
 from components.server.schedules.models import Schedule
 from components.server.users.models import User
-from components.server.news.models import News
-
-
-def test_schedule_creation(session, owner):
-    assert(not Schedule.query.all())
-    schedule = Schedule(
-        name='testname', owner=owner,
-        url='http://httpbin.org'
-    )
-    session.add(schedule)
-    session.commit()
-    assert(schedule in session)
 
 
 def test_schedule_attributes(schedule):
@@ -26,20 +14,22 @@ def test_schedule_attributes(schedule):
     assert(isinstance(schedule.blacklist, list))
 
 
-def test_news_creation(session, schedule):
-    assert(not News.query.all())
-    news = News(
-        schedule=schedule,
-        url='http://www.naver.com',
-        content='fixturecontent'
+def test_schedule_creation(session, owner):
+    assert(not Schedule.query.all())
+    schedule = Schedule(
+        name='testname', owner=owner,
+        url='http://httpbin.org'
     )
-    session.add(news)
+    session.add(schedule)
     session.commit()
-    assert(news in session)
+    assert(schedule in session)
 
 
-def test_news_attributes(news, schedule):
-    assert(news.id)
-    assert(news.url)
-    assert(news.schedule == schedule)
-    assert(news.content)
+def test_schedule_deletion():
+    # TODO: NOT IMPLEMTED YET
+    pass
+
+
+def test_schedule_update():
+    # TODO: NOT IMPLEMTED YET
+    pass

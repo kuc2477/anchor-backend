@@ -2,6 +2,7 @@ from wtforms import (
     Form,
     StringField,
     IntegerField,
+    BooleanField,
     FieldList,
 )
 from wtforms.validators import (
@@ -17,6 +18,7 @@ class BaseScheduleForm(Form):
     name = StringField('Name', [Length(min=2, max=50)])
     url = StringField('Url', [URL()])
     cycle = IntegerField('Cycle', [Optional(), NumberRange(max=600)])
+    enabled = BooleanField('Enabled', [Optional()])
     max_depth = IntegerField('Max depth', [Optional(), NumberRange(max=5)])
     max_dist = IntegerField('Max distance', [Optional(), NumberRange(max=5)])
     brothers = FieldList(

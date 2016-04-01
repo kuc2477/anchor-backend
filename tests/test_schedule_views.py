@@ -57,6 +57,7 @@ def test_schedule_resource_put(session, schedule, client):
     payload = {
         'id': schedule.id,
         'name': 'testnamechanged',
+        'enabled': True,
         'url': 'http://testurlchanged.com',
         'cycle': 123,
         'max_depth': 2,
@@ -73,6 +74,7 @@ def test_schedule_resource_put(session, schedule, client):
     assert(res.status_code == 204)
     assert(updated.name == payload['name'])
     assert(updated.url == payload['url'])
+    assert(updated.enabled)
     assert(updated.cycle == payload['cycle'])
     assert(updated.max_depth == payload['max_depth'])
     assert(updated.max_dist == payload['max_dist'])
