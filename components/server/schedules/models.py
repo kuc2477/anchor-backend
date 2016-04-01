@@ -72,10 +72,11 @@ class ScheduleResource(Resource):
         return '', 204
 
     def put(self, id):
-        form = ScheduleUpdateForm(request.form)
+        form = ScheduleUpdateForm(**request.json)
         form.validate()
 
         schedule = Schedule.query.get_or_404(form.id.data)
+        schedule.name = form.name.data
         schedule.url = form.url.data
         schedule.cycle = form.cycle.data
         schedule.max_dist = form.max_dist.data
@@ -91,7 +92,7 @@ class ScheduleListResource(PaginatedResource):
     schema = ScheduleSchema
 
     def post(self):
-        form = ScheduleCreateForm(request.form)
+        form = ScheduleCreateForm(**request.json)
         form.validate()
 
         schedule = Schedule(

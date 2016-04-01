@@ -1,5 +1,6 @@
 import pytest
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import scoped_session
 from config import Test
 from components.server import create_app
 from components.server.extensions import db as database
@@ -34,12 +35,13 @@ def db(app):
 @pytest.yield_fixture(scope='function')
 def session(db):
     connection = db.engine.connect()
-    database.create_scoped_session
     transaction = connection.begin()
-    db.session = session = sessionmaker(bind=connection)()
+
+    session_factory = sessionmaker(bind=connection)
+    db.session = session = scoped_session(session_factory)
 
     yield session
 
-    session.close()
     transaction.rollback()
     connection.close()
+    session.remove()

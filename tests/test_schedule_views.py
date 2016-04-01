@@ -39,7 +39,11 @@ def test_schedule_resource_post(session, client, url, owner):
         'name': 'testname',
         'url': url,
     }
-    res = client.post('/api/schedules', data=payload)
+    res = client.post(
+        '/api/schedules',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
 
     assert(res.status_code == 201)
     assert(Schedule.query.filter_by(
@@ -59,7 +63,11 @@ def test_schedule_resource_put(session, schedule, client):
         'max_dist': 2,
         'brothers': ['http://www.naver.com', 'http://www.daum.net']
     }
-    res = client.put('/api/schedules/{}'.format(schedule.id), data=payload)
+    res = client.put(
+        '/api/schedules/{}'.format(schedule.id),
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
     updated = Schedule.query.get(schedule.id)
 
     assert(res.status_code == 204)
