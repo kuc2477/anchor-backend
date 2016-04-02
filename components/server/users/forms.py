@@ -1,6 +1,6 @@
 from wtforms import (
     Form,
-    TextField,
+    StringField,
     PasswordField,
 )
 from wtforms.validators import (
@@ -13,15 +13,15 @@ from ..utils.form import abort_on_validation_fail
 
 @abort_on_validation_fail
 class AuthenticationForm(Form):
-    email = TextField('Email', [Email()])
-    password = PasswordField()
+    email = StringField('Email', [Email()])
+    password = PasswordField('Password')
 
 
 @abort_on_validation_fail
 class SignupForm(Form):
-    email = TextField('Email', [Email()])
-    firstname = TextField('Firstname', [Length(min=2, max=50)])
-    lastname = TextField('Lastname', [Length(min=2, max=50)])
+    email = StringField('Email', [Email()])
+    firstname = StringField('Firstname', [Length(min=2, max=50)])
+    lastname = StringField('Lastname', [Length(min=2, max=50)])
     password = PasswordField('Password', [Length(min=6, max=50)])
     password_validation = PasswordField(
         'Password Validation', [EqualTo('password')]

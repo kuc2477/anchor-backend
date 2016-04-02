@@ -59,6 +59,12 @@ docs/_build/
 target/
 *.sw*
 
+# profiling
+prof/
+
+# Venv
+.venv/
+
 # secret
 secret.py
 

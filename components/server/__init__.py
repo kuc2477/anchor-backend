@@ -1,10 +1,6 @@
 from flask import Flask
 from celery import Celery
-from news.backends.sqlalchemy import SQLAlchemyBackend
-from news.scheduler import Scheduler
-
 from .extensions import (
-    db, persister,
     configure_db,
     configure_ma,
     configure_login,
@@ -15,9 +11,6 @@ from .extensions import (
 from .users.views import bp as users_bp
 from .schedules.views import bp as schedules_bp
 from .news.views import bp as news_bp
-from .users.models import User
-from .schedules.models import Schedule
-from .news.models import News
 
 
 def create_app(cfg):
@@ -51,10 +44,10 @@ def create_celery(app):
     )
     celery.conf.update(app.config)
 
+    # add support for flask's app context to celery
     TaskBase = celery.Task
 
     class ContextTask(TaskBase):
-        """Adds support for Flask's app contexts"""
         abstract = True
 
         def __call__(self, *args, **kwargs):
@@ -62,20 +55,8 @@ def create_celery(app):
                 return TaskBase.__call__(self, *args, **kwargs)
 
     celery.Task = ContextTask
+
     return celery
-
-
-def create_news_backend(app):
-    return SQLAlchemyBackend(
-        bind=db.session,
-        owner_class=User,
-        schedule_class=Schedule,
-        news_class=News
-    )
-
-
-def create_news_scheduler(backend, celery):
-    return Scheduler(backend, celery, persister=persister)
 
 
 def get_config(cfg):

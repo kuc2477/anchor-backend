@@ -57,6 +57,10 @@ class Test(Base):
     # Mode
     TESTING = True
 
+    # Database
+    SQLALCHEMY_ECHO = False
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
 
 class Prod(Base):
     pass

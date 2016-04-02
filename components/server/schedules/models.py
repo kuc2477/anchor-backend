@@ -11,9 +11,11 @@ from news.constants import (
     DEFAULT_BLACKLIST,
     DEFAULT_BROTHERS
 )
-from flask.ext.restful import (
-    Resource,
-    reqparse
+from flask import request
+from flask.ext.restful import Resource
+from .forms import (
+    ScheduleCreateForm,
+    ScheduleUpdateForm,
 )
 from ..utils.ma import get_base_schema
 from ..utils.restful import PaginatedResource
@@ -63,34 +65,46 @@ class ScheduleResource(Resource):
         schedule = Schedule.query.get_or_404(id)
         return schedule.serialized
 
-    def post(self):
-        pass
-
     def delete(self, id):
-        schedule = self.query.get(id)
+        schedule = Schedule.query.get(id)
         db.session.delete(schedule)
+        db.session.commit()
         return '', 204
 
     def put(self, id):
-        parser = reqparse.RequestParser()
-        parser.add_argument('url', type=str)
-        parser.add_argument('cycle', type=int)
-        parser.add_argument('max_dist', type=int)
-        parser.add_argument('max_depth', type=int)
-        parser.add_argument('brothers', type=list)
-        parser.add_argument('blacklist', type=list)
+        form = ScheduleUpdateForm(**request.json)
+        form.validate()
 
-        args = parser.parse_args()
-        schedule = self.query.get_or_404(id)
-        schedule.url = args['url']
-        schedule.cycle = args['cycle']
-        schedule.max_dist = args['max_dist']
-        schedule.max_depth = args['max_depth']
-        schedule.brothers = args['brothers']
-        schedule.blacklist = args['blacklist']
+        schedule = Schedule.query.get_or_404(form.id.data)
+        schedule.name = form.name.data
+        schedule.url = form.url.data
+        schedule.cycle = form.cycle.data
+        schedule.max_dist = form.max_dist.data
+        schedule.max_depth = form.max_depth.data
+        schedule.brothers = form.brothers.data
+        schedule.blacklist = form.blacklist.data
         db.session.commit()
+        return '', 204
 
 
 class ScheduleListResource(PaginatedResource):
     model = Schedule
     schema = ScheduleSchema
+
+    def post(self):
+        form = ScheduleCreateForm(**request.json)
+        form.validate()
+
+        schedule = Schedule(
+            owner=form.owner.data,
+            name=form.name.data,
+            url=form.url.data,
+            cycle=form.cycle.data,
+            max_depth=form.max_depth.data,
+            max_dist=form.max_dist.data,
+            brothers=form.brothers.data,
+            blacklist=form.blacklist.data
+        )
+        db.session.add(schedule)
+        db.session.commit()
+        return '', 201
