@@ -52,7 +52,7 @@ class ABCSchedule(create_abc_schedule(User)):
         return schema.dump(self).data
 
 
-Schedule = create_schedule(ABCSchedule, db.Model, persister=persister)
+Schedule = create_schedule(ABCSchedule, db.Model)
 ScheduleSchema = get_base_schema(Schedule)
 
 
@@ -79,6 +79,7 @@ class ScheduleResource(Resource):
         schedule.name = form.name.data
         schedule.url = form.url.data
         schedule.cycle = form.cycle.data
+        schedule.enabled = form.enabled.data
         schedule.max_dist = form.max_dist.data
         schedule.max_depth = form.max_depth.data
         schedule.brothers = form.brothers.data
@@ -107,4 +108,4 @@ class ScheduleListResource(PaginatedResource):
         )
         db.session.add(schedule)
         db.session.commit()
-        return '', 201
+        return schedule.serialized, 201

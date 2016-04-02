@@ -12,6 +12,7 @@ def test_schedule_list_resource_get(schedule, client):
         isinstance(d['brothers'], list) and
         isinstance(d['owner'], int) and
         isinstance(d['name'], str) and
+        isinstance(d['enabled'], bool) and
         (d['max_depth'] is None or isinstance(d['max_depth'], int)) and
         (d['max_dist'] is None or isinstance(d['max_dist'], int))
         for d in data
@@ -25,6 +26,7 @@ def test_schedule_resource_get(schedule, client):
     assert(data['url'] == schedule.url)
     assert(data['blacklist'] == schedule.blacklist)
     assert(data['brothers'] == schedule.brothers)
+    assert(data['enabled'] == schedule.enabled)
     assert(data['owner'] == schedule.owner.id)
     assert(data['name'] == schedule.name)
     assert(data['max_depth'] == schedule.max_depth)
@@ -33,7 +35,6 @@ def test_schedule_resource_get(schedule, client):
 
 def test_schedule_resource_post(session, client, url, owner):
     assert(not Schedule.query.all())
-
     payload = {
         'owner': owner.id,
         'name': 'testname',
@@ -44,7 +45,6 @@ def test_schedule_resource_post(session, client, url, owner):
         data=json.dumps(payload),
         content_type='application/json'
     )
-
     assert(res.status_code == 201)
     assert(Schedule.query.filter_by(
         owner_id=payload['owner'],
