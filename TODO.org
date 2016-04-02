@@ -1,0 +1,7 @@
+* TODO:
+  - add schedule state serialization and scheduler running script.
+  - add crossbar router and running script.
+  - add simple scheduler callback function that send push messages to the crossbar router
+  - build simple neural network news classifier by using user ratings as test
+    set.
+  - build simple scheduled learning system with celery
