@@ -2,15 +2,23 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
+    Boolean,
 )
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
+from flask import request
 from flask.ext.restful import (
     Resource,
+    abort,
 )
+from flask.ext.login import current_user
 from news.models.sqlalchemy import (
     create_abc_news, create_news
+)
+from .forms import (
+    RatingCreateForm,
+    RatingUpdateForm,
 )
 from ..users.models import User
 from ..schedules.models import Schedule
@@ -30,7 +38,7 @@ class ABCNews(create_abc_news(Schedule)):
         return schema.dump(self).data
 
 
-News = create_news(create_abc_news(Schedule), db.Model)
+News = create_news(ABCNews, db.Model)
 NewsSchema = get_base_schema(News)
 
 
@@ -55,8 +63,16 @@ class Rating(db.Model):
     def news(cls):
         return relationship(News, backref='news_list')
 
+    def __init__(self, user, news, positive=True):
+        # support both foreign key and model instance
+        isinstance(user, int) and setattr(self, 'user_id', user)
+        not isinstance(user, int) and setattr(self, 'user', user)
+        isinstance(news, int) and setattr(self, 'news_id', news)
+        not isinstance(news, int) and setattr(self, 'news', news)
+        self.positive = positive
+
     id = Column(Integer, primary_key=True)
-    value = Column(Integer)
+    positive = Column(Boolean, default=True)
 
     @property
     def serialized(self):
@@ -73,16 +89,14 @@ RatingSchema = get_base_schema(Rating)
 
 class NewsResource(Resource):
     def get(self, id):
-        # TODO: NOT IMPLEMTED YET
-        pass
+        news = News.query.get_or_404(id)
+        return news.serialized
 
     def delete(self, id):
-        # TODO: NOT IMPLEMTED YET
-        pass
-
-    def put(self, id):
-        # TODO: NOT IMPLEMTED YET
-        pass
+        news = Schedule.query.get_or_404(id)
+        db.session.delete(news)
+        db.session.commit()
+        return '', 204
 
 
 class NewsListResource(PaginatedResource):
@@ -92,16 +106,23 @@ class NewsListResource(PaginatedResource):
 
 class RatingResource(Resource):
     def get(self, id):
-        # TODO: NOT IMPLEMTED YET
-        pass
+        rating = Rating.query.get_or_404(id)
+        return rating.serialized
 
     def delete(self, id):
-        # TODO: NOT IMPLEMTED YET
-        pass
+        rating = Rating.query.get_or_404(id)
+        db.session.delete(rating)
+        db.session.commit()
+        return '', 204
 
     def put(self, id):
-        # TODO: NOT IMPLEMTED YET
-        pass
+        form = RatingUpdateForm(**request.json)
+        form.validate()
+
+        rating = Rating.query.get_or_404(id)
+        rating.positive = form.positive.data
+        db.session.commit()
+        return '', 204
 
 
 class RatingListResource(PaginatedResource):
@@ -109,5 +130,19 @@ class RatingListResource(PaginatedResource):
     schema = RatingSchema
 
     def post(self):
-        # TODO: NOT IMPLEMTED YET
-        pass
+        form = RatingCreateForm(**request.json)
+        form.validate()
+
+        # abort if no user data has been delivered either via
+        # form data or session.
+        if not form.user.data and current_user.is_anonymous:
+            abort(400)
+
+        rating = Rating(
+            user=form.user.data or current_user,
+            news=form.news.data,
+            positive=form.positive.data
+        )
+        db.session.add(rating)
+        db.session.commit()
+        return rating.serialized, 201

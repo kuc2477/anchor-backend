@@ -2,8 +2,8 @@ import pytest
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import scoped_session
 from config import Test
-from components.server import create_app
-from components.server.extensions import db as database
+from app import create_app
+from app.extensions import db as database
 
 
 @pytest.yield_fixture(scope='session')

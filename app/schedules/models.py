@@ -1,3 +1,4 @@
+from marshmallow import fields
 from sqlalchemy import (
     Column, Text
 )
@@ -21,7 +22,7 @@ from ..utils.ma import get_base_schema
 from ..utils.restful import PaginatedResource
 from ..users.models import User
 from ..extensions import (
-    db, persister
+    db, celery, persister
 )
 
 
@@ -53,7 +54,13 @@ class ABCSchedule(create_abc_schedule(User)):
 
 
 Schedule = create_schedule(ABCSchedule, db.Model, persister=persister)
-ScheduleSchema = get_base_schema(Schedule)
+
+
+class ScheduleSchema(get_base_schema(Schedule)):
+    state = fields.Method('get_state')
+
+    def get_state(self, schedule):
+        return schedule.get_state(celery)
 
 
 # =========
@@ -79,6 +86,7 @@ class ScheduleResource(Resource):
         schedule.name = form.name.data
         schedule.url = form.url.data
         schedule.cycle = form.cycle.data
+        schedule.enabled = form.enabled.data
         schedule.max_dist = form.max_dist.data
         schedule.max_depth = form.max_depth.data
         schedule.brothers = form.brothers.data
@@ -107,4 +115,4 @@ class ScheduleListResource(PaginatedResource):
         )
         db.session.add(schedule)
         db.session.commit()
-        return '', 201
+        return schedule.serialized, 201

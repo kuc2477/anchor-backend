@@ -1,4 +1,5 @@
-from redis import Redis
+from celery import Celery
+from redis import Redis, ConnectionPool
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import LoginManager
 from flask.ext.marshmallow import Marshmallow
@@ -7,9 +8,19 @@ from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
 from news.persister import SchedulePersister
 
-# ===================
-# Extension instances
-# ===================
+
+# ==========
+# Extensions
+# ==========
+
+# redis instance
+redis = Redis()
+
+# celery instance
+celery = Celery()
+
+# schedule persister
+persister = SchedulePersister(redis)
 
 # app db instance
 db = SQLAlchemy()
@@ -26,16 +37,23 @@ mail = Mail()
 # admin instance
 admin = Admin()
 
-# redis instance
-redis = Redis()
-
-# schedule persister
-persister = SchedulePersister(redis)
-
 
 # =============
-# Setup methods
+# Configuration
 # =============
+
+def configure_redis(app):
+    connection_pool = ConnectionPool(
+        host=app.config.get('REDIS_HOST', 'localhost'),
+        port=app.config.get('REDIS_PORT', 6379),
+        db=app.config.get('REDIS_DB', 0),
+    )
+    redis.connection_pool = connection_pool
+
+
+def configure_celery(app):
+    celery.conf.update(app.config)
+
 
 def configure_db(app):
     db.init_app(app)
