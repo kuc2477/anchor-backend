@@ -1,3 +1,4 @@
+from marshmallow import fields
 from sqlalchemy import (
     Column, Text
 )
@@ -21,7 +22,7 @@ from ..utils.ma import get_base_schema
 from ..utils.restful import PaginatedResource
 from ..users.models import User
 from ..extensions import (
-    db, persister
+    db, celery, persister
 )
 
 
@@ -52,8 +53,14 @@ class ABCSchedule(create_abc_schedule(User)):
         return schema.dump(self).data
 
 
-Schedule = create_schedule(ABCSchedule, db.Model)
-ScheduleSchema = get_base_schema(Schedule)
+Schedule = create_schedule(ABCSchedule, db.Model, persister=persister)
+
+
+class ScheduleSchema(get_base_schema(Schedule)):
+    state = fields.Method('get_state')
+
+    def get_state(self, schedule):
+        return schedule.get_state(celery)
 
 
 # =========

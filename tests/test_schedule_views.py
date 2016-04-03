@@ -1,5 +1,6 @@
 import json
-from components.server.schedules.models import Schedule
+from app.extensions import celery
+from app.schedules.models import Schedule
 
 
 def test_schedule_list_resource_get(schedule, client):
@@ -13,6 +14,7 @@ def test_schedule_list_resource_get(schedule, client):
         isinstance(d['owner'], int) and
         isinstance(d['name'], str) and
         isinstance(d['enabled'], bool) and
+        isinstance(d['state'], str) and
         (d['max_depth'] is None or isinstance(d['max_depth'], int)) and
         (d['max_dist'] is None or isinstance(d['max_dist'], int))
         for d in data
@@ -27,6 +29,7 @@ def test_schedule_resource_get(schedule, client):
     assert(data['blacklist'] == schedule.blacklist)
     assert(data['brothers'] == schedule.brothers)
     assert(data['enabled'] == schedule.enabled)
+    assert(data['state'] == schedule.get_state(celery))
     assert(data['owner'] == schedule.owner.id)
     assert(data['name'] == schedule.name)
     assert(data['max_depth'] == schedule.max_depth)

@@ -1,4 +1,4 @@
-from components.server.news.models import (
+from app.news.models import (
     News,
     Rating
 )

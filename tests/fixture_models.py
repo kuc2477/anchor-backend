@@ -1,7 +1,7 @@
 import pytest
-from components.server.users.models import User
-from components.server.schedules.models import Schedule
-from components.server.news.models import (
+from app.users.models import User
+from app.schedules.models import Schedule
+from app.news.models import (
     News,
     Rating
 )
@@ -42,6 +42,7 @@ def news(session, schedule):
     session.add(n)
     session.commit()
     return n
+
 
 @pytest.fixture
 def rating(session, owner, news):

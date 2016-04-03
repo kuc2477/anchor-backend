@@ -1,5 +1,6 @@
-from components.server.schedules.models import Schedule
-from components.server.users.models import User
+from app.schedules.models import Schedule
+from app.users.models import User
+from app.extensions import celery
 
 
 def test_schedule_attributes(schedule):
@@ -10,6 +11,7 @@ def test_schedule_attributes(schedule):
     assert(schedule.cycle)
     schedule.max_depth
     schedule.max_dist
+    assert(isinstance(schedule.get_state(celery), str))
     assert(isinstance(schedule.brothers, list))
     assert(isinstance(schedule.blacklist, list))
     assert(isinstance(schedule.enabled, bool))

@@ -8,16 +8,14 @@ from flask.ext.script import Manager, Command
 from flask.ext.migrate import Migrate, MigrateCommand
 
 import config
-from components.server import (
+from app import (
     create_app,
-    create_celery,
+    create_scheduler
 )
-from components.scheduler import (
-    create_news_backend,
-    create_news_scheduler
+from app.users.models import User
+from app.extensions import (
+    db, celery
 )
-from components.server.users.models import User
-from components.server.extensions import db
 
 
 try:
@@ -27,9 +25,7 @@ except KeyError:
 
 
 app = create_app(getattr(config, config_name))
-celery = create_celery(app)
-news_backend = create_news_backend(app)
-news_scheduler = create_news_scheduler(news_backend, celery)
+scheduler = create_scheduler(app)
 
 manager = Manager(app)
 migrate = Migrate(app, db)
@@ -64,7 +60,7 @@ class RunCelery(Command):
 class RunScheduler(Command):
     def run(self):
         with app.app_context():
-            news_scheduler.start()
+            scheduler.start()
 
 
 class RunRedis(Command):

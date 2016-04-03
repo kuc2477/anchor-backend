@@ -1,0 +1,27 @@
+* FEATURE GOALS [60%]
+
+  - [X] Authentication system [100%]
+        - [X] Email verification based signup system
+        - [X] User authentication with hashed password
+
+  - [X] RESTful apis [100%]
+        - [X] authentication / user api
+        - [X] schedule api
+        - [X] news api
+        - [X] rating api
+
+  - [X] Persisted scheduler [100%]
+        - [X] implement schedule state accessor
+        - [X] add schedule state serialization
+        - [X] add scheduler running command in manage.py
+
+  - [ ] Crossbar RPC router based news feed notification [0%]
+        - [ ] add crossbar router
+        - [ ] add crossbar router running command in manage.py
+        - [ ] implement cover callback function that sends push messages to
+              the crossbar router
+
+  - [ ] Neural network based news classifier [0%]
+        - [ ] make decision what features to feed to the neural network
+        - [ ] build neural network based news classifier
+        - [ ] build persistent machine learning system with celery

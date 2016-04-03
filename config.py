@@ -29,6 +29,7 @@ class Base(object):
 
     # Celery
     CELERY_BROKER_URL = None
+    CELERY_RESULT_BACKEND = 'rpc://'
 
     # Session
     SECRET_SALT = SECRET_SALT

@@ -1,5 +1,5 @@
 import json
-from components.server.news.models import Rating
+from app.news.models import Rating
 
 
 def test_news_list_resource_get(news, client):
@@ -64,7 +64,6 @@ def test_rating_resource_post(session, client, owner, news):
 
 
 def test_rating_resource_put(session, client, rating):
-    original = rating.positive
     payload = {'positive': not rating.positive}
     res = client.put(
         '/api/ratings/{}'.format(rating.id),
