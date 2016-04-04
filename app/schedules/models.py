@@ -97,7 +97,7 @@ class ScheduleResource(Resource):
         schedule.brothers = form.brothers.data
         schedule.blacklist = form.blacklist.data
         db.session.commit()
-        return '', 204
+        return schedule.serialized, 200
 
 
 class ScheduleListResource(PaginatedResource):

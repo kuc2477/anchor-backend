@@ -74,7 +74,7 @@ def test_schedule_resource_put(session, schedule, client):
     )
     updated = Schedule.query.get(schedule.id)
 
-    assert(res.status_code == 204)
+    assert(res.status_code == 200)
     assert(updated.name == payload['name'])
     assert(updated.url == payload['url'])
     assert(updated.enabled)
