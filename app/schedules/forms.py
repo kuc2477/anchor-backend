@@ -31,7 +31,7 @@ class BaseScheduleForm(Form):
 
 @abort_on_validation_fail
 class ScheduleCreateForm(BaseScheduleForm):
-    owner = IntegerField('Owner', [NumberRange(min=0)])
+    owner = IntegerField('Owner', [NumberRange(min=0), Optional()])
 
 
 @abort_on_validation_fail

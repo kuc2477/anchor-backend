@@ -13,11 +13,15 @@ from news.constants import (
     DEFAULT_BROTHERS
 )
 from flask import request
-from flask.ext.restful import Resource
+from flask.ext.restful import (
+    Resource,
+    abort
+)
 from .forms import (
     ScheduleCreateForm,
     ScheduleUpdateForm,
 )
+from flask.ext.login import current_user
 from ..utils.ma import get_base_schema
 from ..utils.restful import PaginatedResource
 from ..users.models import User
@@ -31,12 +35,12 @@ from ..extensions import (
 # ==============
 
 class ABCSchedule(create_abc_schedule(User)):
-    def __init__(self, name='', owner=None, url='',
+    def __init__(self, name='', owner=None, url='', enabled=False,
                  cycle=DEFAULT_SCHEDULE_CYCLE,
                  max_dist=DEFAULT_MAX_DIST, max_depth=DEFAULT_MAX_DEPTH,
                  blacklist=DEFAULT_BLACKLIST, brothers=DEFAULT_BROTHERS):
         self.name = name
-        super().__init__(owner=owner, url=url, cycle=cycle,
+        super().__init__(owner=owner, url=url, cycle=cycle, enabled=enabled,
                          max_dist=max_dist, max_depth=max_depth,
                          blacklist=blacklist, brothers=brothers)
 
@@ -83,6 +87,7 @@ class ScheduleResource(Resource):
         form.validate()
 
         schedule = Schedule.query.get_or_404(form.id.data)
+        schedule.enabled = form.enabled.data
         schedule.name = form.name.data
         schedule.url = form.url.data
         schedule.cycle = form.cycle.data
@@ -103,8 +108,11 @@ class ScheduleListResource(PaginatedResource):
         form = ScheduleCreateForm(**request.json)
         form.validate()
 
+        if not form.owner.data and current_user.is_anonymous:
+            abort(400)
+
         schedule = Schedule(
-            owner=form.owner.data,
+            owner=form.owner.data or current_user,
             name=form.name.data,
             url=form.url.data,
             cycle=form.cycle.data,
