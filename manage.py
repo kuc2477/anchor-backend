@@ -46,7 +46,10 @@ class CreateSuperUser(Command):
         assert(password == password_check)
 
         with app.app_context():
-            user = User(firstname, lastname, email, password)
+            user = User(
+                firstname=firstname, lastname=lastname,
+                email=email, password=password
+            )
             db.session.add(user)
             db.session.commit()
 
