@@ -1,9 +1,7 @@
 from flask import Flask
-from news.backends.sqlalchemy import SQLAlchemyBackend
-from news.scheduler import Scheduler
 from .extensions import (
-    db, celery, persister,
     configure_db,
+    configure_scheduler,
     configure_redis,
     configure_celery,
     configure_ma,
@@ -12,12 +10,12 @@ from .extensions import (
     configure_admin,
     register_blueprints
 )
-from .users.models import User
-from .news.models import News
-from .schedules.models import Schedule
 from .users.views import bp as users_bp
+from .users.models import User
 from .schedules.views import bp as schedules_bp
+from .schedules.models import Schedule
 from .news.views import bp as news_bp
+from .news.models import News
 
 
 def get_config(cfg):
@@ -37,6 +35,12 @@ def create_app(cfg):
 
     # configure extensions on app
     configure_db(app)
+    configure_scheduler(
+        app,
+        user_model=User,
+        schedule_model=Schedule,
+        news_model=News
+    )
     configure_redis(app)
     configure_celery(app)
     configure_ma(app)
@@ -51,22 +55,3 @@ def create_app(cfg):
     register_blueprints(app, users_bp, schedules_bp, news_bp)
 
     return app
-
-
-def create_scheduler_backend(app):
-    # bind models with app config
-    configure_db(app)
-    return SQLAlchemyBackend(
-        owner_class=User,
-        schedule_class=Schedule,
-        news_class=News,
-        bind=db.session
-    )
-
-
-def create_scheduler(app):
-    # configure redis and celery with app config
-    configure_redis(app)
-    configure_celery(app)
-    backend = create_scheduler_backend(app)
-    return Scheduler(backend, celery, persister=persister)

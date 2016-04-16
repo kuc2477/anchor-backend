@@ -8,13 +8,10 @@ from flask.ext.script import Manager, Command
 from flask.ext.migrate import Migrate, MigrateCommand
 
 import config
-from app import (
-    create_app,
-    create_scheduler
-)
+from app import create_app
 from app.users.models import User
 from app.extensions import (
-    db, celery
+    db, celery, scheduler
 )
 
 
@@ -25,8 +22,6 @@ except KeyError:
 
 
 app = create_app(getattr(config, config_name))
-scheduler = create_scheduler(app)
-
 manager = Manager(app)
 migrate = Migrate(app, db)
 

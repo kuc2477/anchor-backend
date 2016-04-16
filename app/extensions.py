@@ -6,7 +6,9 @@ from flask.ext.marshmallow import Marshmallow
 from flask.ext.mail import Mail
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
-from news.persister import SchedulePersister
+from news.backends.sqlalchemy import SQLAlchemyBackend
+from news.persister import Persister
+from news.scheduler import Scheduler
 
 
 # ==========
@@ -19,8 +21,11 @@ redis = Redis()
 # celery instance
 celery = Celery()
 
+# scheduler
+scheduler = Scheduler()
+
 # schedule persister
-persister = SchedulePersister(redis)
+persister = Persister(redis)
 
 # app db instance
 db = SQLAlchemy()
@@ -52,7 +57,31 @@ def configure_redis(app):
 
 
 def configure_celery(app):
+    TaskBase = celery.Task
+
+    # wrap celery task in flask app context
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+
+    # monkey patch celery task and configurations
+    celery.Task = ContextTask
     celery.conf.update(app.config)
+
+
+def configure_scheduler(app, user_model, schedule_model, news_model):
+    # bind models with app config and create scheduler backend
+    backend = SQLAlchemyBackend(
+        owner_model=user_model,
+        schedule_model=schedule_model,
+        news_model=news_model,
+        bind=db.session
+    )
+    scheduler.configure(backend=backend, celery=celery, persister=persister)
+    scheduler.register_celery_task()
 
 
 def configure_db(app):
