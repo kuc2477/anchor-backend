@@ -81,7 +81,6 @@ def configure_scheduler(app, user_model, schedule_model, news_model):
         bind=db.session
     )
     scheduler.configure(backend=backend, celery=celery, persister=persister)
-    scheduler.register_celery_task()
 
 
 def configure_db(app):

@@ -1,3 +1,5 @@
+import os
+import config
 from flask import Flask
 from .extensions import (
     configure_db,
@@ -55,3 +57,12 @@ def create_app(cfg):
     register_blueprints(app, users_bp, schedules_bp, news_bp)
 
     return app
+
+
+def create_app_from_env():
+    try:
+        config_name = os.environ['ANCHOR_CONFIG'].title()
+    except KeyError:
+        config_name = 'Dev'
+
+    return create_app(getattr(config, config_name))

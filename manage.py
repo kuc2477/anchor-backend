@@ -7,21 +7,14 @@ from getpass import getpass
 from flask.ext.script import Manager, Command
 from flask.ext.migrate import Migrate, MigrateCommand
 
-import config
-from app import create_app
+from app import create_app_from_env
 from app.users.models import User
 from app.extensions import (
     db, celery, scheduler
 )
 
 
-try:
-    config_name = os.environ['ANCHOR_CONFIG'].title()
-except KeyError:
-    config_name = 'Dev'
-
-
-app = create_app(getattr(config, config_name))
+app = create_app_from_env()
 manager = Manager(app)
 migrate = Migrate(app, db)
 
