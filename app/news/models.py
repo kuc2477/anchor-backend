@@ -1,9 +1,11 @@
+from marshmallow import fields
 from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
     Boolean,
 )
+from sqlalchemy import sql
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
@@ -37,9 +39,22 @@ class ABCNews(create_abc_news(Schedule)):
         schema = NewsSchema()
         return schema.dump(self).data
 
+    @property
+    def current_user_rating(self):
+        if current_user.is_anonymous:
+            return None
+        try:
+            rating = [r for r in self.ratings if r.user == self.owner][0]
+            return rating.positive
+        except IndexError:
+            return None
+
 
 News = create_news(ABCNews, db.Model)
-NewsSchema = get_base_schema(News)
+
+
+class NewsSchema(get_base_schema(News)):
+    current_user_rating = fields.Boolean(allow_none=True)
 
 
 class Rating(db.Model):
@@ -61,7 +76,7 @@ class Rating(db.Model):
 
     @declared_attr
     def news(cls):
-        return relationship(News, backref='news_list')
+        return relationship(News, backref='ratings')
 
     def __init__(self, user, news, positive=True):
         # support both foreign key and model instance
@@ -102,6 +117,14 @@ class NewsResource(Resource):
 class NewsListResource(PaginatedResource):
     model = News
     schema = NewsSchema
+
+    def get_query(self):
+        if current_user.is_anonymous:
+            return News.query.filter(sql.false())
+        else:
+            return self.model.query.join(Schedule).filter(
+                Schedule.owner_id == current_user.id
+            )
 
 
 class RatingResource(Resource):

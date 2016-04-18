@@ -114,16 +114,18 @@ def configure_admin(app):
     )
     schedule_model_view = type('ScheduleModelView', (ModelView,), {})
     news_model_view = type('NewsModelView', (ModelView,), {})
+    rating_model_view = type('RatingModelView', (ModelView,), {})
 
     from .users.models import User
     from .schedules.models import Schedule
-    from .news.models import News
+    from .news.models import News, Rating
 
     admin.init_app(app)
     admin.add_views(
         user_model_view(User, db.session),
         schedule_model_view(Schedule, db.session),
-        news_model_view(News, db.session)
+        news_model_view(News, db.session),
+        rating_model_view(Rating, db.session),
     )
 
 

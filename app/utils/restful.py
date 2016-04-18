@@ -11,12 +11,15 @@ class PaginatedResource(Resource):
     schema = None
     order_by = 'id'
 
+    def get_query(self):
+        return self.model.query
+
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument(self.pagination_key, type=int)
         page = parser.parse_args()[self.pagination_key] or 0
 
-        instances = self.model.query\
+        instances = self.get_query()\
             .limit(self.pagination_size)\
             .offset(self.pagination_size * page)\
             .all()
