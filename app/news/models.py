@@ -46,6 +46,9 @@ News = create_news(ABCNews, db.Model)
 
 
 class NewsSchema(get_base_schema(News)):
+    title = fields.String()
+    description = fields.String()
+    image = fields.String()
     current_user_rating = fields.Boolean(allow_none=True)
 
 
