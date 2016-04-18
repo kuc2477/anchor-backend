@@ -9,18 +9,10 @@ from sqlalchemy import sql
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
-from flask import request
-from flask.ext.restful import (
-    Resource,
-    abort,
-)
+from flask.ext.restful import Resource
 from flask.ext.login import current_user
 from news.models.sqlalchemy import (
     create_abc_news, create_news
-)
-from .forms import (
-    RatingCreateForm,
-    RatingUpdateForm,
 )
 from ..users.models import User
 from ..schedules.models import Schedule
@@ -125,47 +117,3 @@ class NewsListResource(PaginatedResource):
             return self.model.query.join(Schedule).filter(
                 Schedule.owner_id == current_user.id
             )
-
-
-class RatingResource(Resource):
-    def get(self, id):
-        rating = Rating.query.get_or_404(id)
-        return rating.serialized
-
-    def delete(self, id):
-        rating = Rating.query.get_or_404(id)
-        db.session.delete(rating)
-        db.session.commit()
-        return '', 204
-
-    def put(self, id):
-        form = RatingUpdateForm(**request.json)
-        form.validate()
-
-        rating = Rating.query.get_or_404(id)
-        rating.positive = form.positive.data
-        db.session.commit()
-        return '', 204
-
-
-class RatingListResource(PaginatedResource):
-    model = Rating
-    schema = RatingSchema
-
-    def post(self):
-        form = RatingCreateForm(**request.json)
-        form.validate()
-
-        # abort if no user data has been delivered either via
-        # form data or session.
-        if not form.user.data and current_user.is_anonymous:
-            abort(400)
-
-        rating = Rating(
-            user=form.user.data or current_user,
-            news=form.news.data,
-            positive=form.positive.data
-        )
-        db.session.add(rating)
-        db.session.commit()
-        return rating.serialized, 201

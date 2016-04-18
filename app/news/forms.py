@@ -13,11 +13,6 @@ class BaseRatingForm(Form):
 
 
 @abort_on_validation_fail
-class RatingUpdateForm(BaseRatingForm):
-    pass
-
-
-@abort_on_validation_fail
-class RatingCreateForm(BaseRatingForm):
+class RatingDetailForm(BaseRatingForm):
     user = IntegerField('User', [Optional()])
     news = IntegerField('News')
