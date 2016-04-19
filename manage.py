@@ -45,7 +45,7 @@ class CreateSuperUser(Command):
 class RunCelery(Command):
     def run(self):
         with app.app_context():
-            celery.worker_main(['worker'])
+            celery.worker_main(argv=['worker', '-A', 'app.tasks'])
 
 
 class RunScheduler(Command):

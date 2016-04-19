@@ -56,6 +56,10 @@ def configure_redis(app):
     redis.connection_pool = connection_pool
 
 
+def configure_persister(app):
+    persister.context = app.app_context()
+
+
 def configure_celery(app):
     TaskBase = celery.Task
 

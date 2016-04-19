@@ -5,6 +5,7 @@ from .extensions import (
     configure_db,
     configure_scheduler,
     configure_redis,
+    configure_persister,
     configure_celery,
     configure_ma,
     configure_login,
@@ -44,6 +45,7 @@ def create_app(cfg):
         news_model=News
     )
     configure_redis(app)
+    configure_persister(app)
     configure_celery(app)
     configure_ma(app)
     configure_login(app)
