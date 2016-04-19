@@ -15,7 +15,7 @@ class Base(object):
     PROJECT_NAME = 'anchor-backend'
     SERVICE_NAME = 'Anchor'
 
-    # Mode
+    # Server Modes
     ADMIN = False
     DEBUG = False
     TESTING = False
@@ -26,10 +26,6 @@ class Base(object):
         'postgresql+psycopg2://{0}:{1}@localhost:5432/{2}'.format(
             DB_USERNAME, DB_PASSWORD, DB_NAME
         )
-
-    # Celery
-    CELERY_BROKER_URL = None
-    CELERY_RESULT_BACKEND = 'rpc://'
 
     # Session
     SECRET_SALT = SECRET_SALT
@@ -43,6 +39,14 @@ class Base(object):
     MAIL_PASSWORD = MAIL_PASSWORD
     MAIL_PORT = 465
     MAIL_USE_SSL = True
+
+    # Celery
+    CELERY_BROKER_URL = None
+    CELERY_RESULT_BACKEND = 'rpc://'
+
+    # Crossbar
+    CROSSBAR_REALM = 'anchor'
+    CROSSBAR_URL = u'ws://localhost:8080/ws'
 
 
 class Dev(Base):

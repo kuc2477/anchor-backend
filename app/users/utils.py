@@ -41,7 +41,7 @@ def confirm_token(token, expiration=3600):
 def send_confirmation_mail(user):
     # generate token and confirmation url
     token = generate_confirmation_token(user.email)
-    url = url_for('users.confirm', token=token, _external=True)
+    url = url_for('users_bp.confirm', token=token, _external=True)
 
     # generate mail title and template
     subject = '[{0}] Confirm your email account'.format(get_service_name())
