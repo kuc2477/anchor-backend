@@ -16,3 +16,5 @@ psycopg2==2.6.1
 marshmallow==2.5.0
 validators==0.10
 wtforms==2.1
+crossbar==0.13.2
+autobahn==0.13.1

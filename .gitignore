@@ -70,3 +70,7 @@ secret.py
 
 # redis
 *.rdb
+
+# crossbar
+.crossbar/*
+!.crossbar/config.json
