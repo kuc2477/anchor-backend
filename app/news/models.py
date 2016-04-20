@@ -28,7 +28,7 @@ from ..extensions import db
 class ABCNews(create_abc_news(Schedule)):
     @property
     def serialized(self):
-        schema = NewsSchema()
+        schema = NewsSchema(exclude=['content'])
         return schema.dump(self).data
 
     @property

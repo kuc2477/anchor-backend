@@ -1,5 +1,8 @@
-from flask import Blueprint
-from flask import request
+from flask import (
+    Blueprint,
+    request,
+    jsonify
+)
 from flask.ext.login import current_user
 from flask.ext.restful import Api
 from flask.ext.restful import abort
@@ -23,7 +26,7 @@ api.add_resource(NewsResource, '/news/<int:id>')
 api.add_resource(NewsListResource, '/news')
 
 
-@bp.route('/api/news/<int:id>/ratings', methods=['POST', 'PUT'])
+@bp.route('/news/<int:id>/ratings', methods=['POST', 'PUT'])
 def rate_news(id):
     form = BaseRatingForm(**request.json)
     form.validate()
@@ -47,10 +50,10 @@ def rate_news(id):
         rating.positive = positive
 
     db.session.commit()
-    return news.serialized, 200
+    return jsonify(news.serialized), 200
 
 
-@bp.route('/api/news/<int:id>/ratings', methods=['DELETE'])
+@bp.route('/news/<int:id>/ratings', methods=['DELETE'])
 def cancel_rating(id):
     form = RatingDetailForm(**request.json)
     form.validate()
@@ -72,4 +75,4 @@ def cancel_rating(id):
         db.session.delete(rating)
         db.session.commit()
 
-    return news.serialized, 204
+    return jsonify(news.serialized), 204
