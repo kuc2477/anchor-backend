@@ -1,3 +1,4 @@
+import time
 from celery import Celery
 from redis import Redis, ConnectionPool
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -9,6 +10,14 @@ from flask.ext.admin.contrib.sqla import ModelView
 from news.backends.sqlalchemy import SQLAlchemyBackend
 from news.persister import Persister
 from news.scheduler import Scheduler
+from autobahn.asyncio.wamp import ApplicationSession
+from asyncio import coroutine
+from .constants import (
+    REDIS_COVER_FINISHED_CHANNEL,
+    REDIS_COVER_START_CHANNEL,
+    TOPIC_COVER_STARTED,
+    TOPIC_COVER_FINISHED,
+)
 
 
 # ==========
@@ -41,6 +50,31 @@ mail = Mail()
 
 # admin instance
 admin = Admin()
+
+
+# notifier component
+class NotifierComponent(ApplicationSession):
+    def notify(self, topic, message):
+        self.publish(topic, message)
+
+    @coroutine
+    def onJoin(self, details):
+        self.pubsub = redis.pubsub()
+        self.pubsub.subscribe(**{
+            # publish notification to crossbar router on cover start
+            REDIS_COVER_START_CHANNEL: lambda message:
+            self.notify(TOPIC_COVER_STARTED, int(message['data'])),
+
+            # publish notification to crossbar router on cover finish
+            REDIS_COVER_FINISHED_CHANNEL: lambda message:
+            self.notify(TOPIC_COVER_FINISHED, int(message['data']))
+        })
+        while True:
+            self.pubsub.get_message()
+            time.sleep(0.1)
+
+# notifier component alias
+notifier = NotifierComponent
 
 
 # =============

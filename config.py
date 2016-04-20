@@ -45,7 +45,7 @@ class Base(object):
     CELERY_RESULT_BACKEND = 'rpc://'
 
     # Crossbar
-    CROSSBAR_REALM = 'anchor'
+    CROSSBAR_REALM = u'anchor'
     CROSSBAR_URL = u'ws://localhost:8080/ws'
 
 
