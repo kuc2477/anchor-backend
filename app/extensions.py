@@ -118,6 +118,14 @@ def configure_scheduler(app, user_model, schedule_model, news_model):
         news_model=news_model,
         bind=db.session
     )
+
+    # push notification on cover start and finish
+    def on_cover_start(schedule):
+        redis.publish(REDIS_COVER_START_CHANNEL, str(schedule.id))
+
+    def on_cover_finish(schedule, news_list):
+        redis.publish(REDIS_COVER_FINISHED_CHANNEL, str(schedule.id))
+
     scheduler.configure(backend=backend, celery=celery, persister=persister)
 
 

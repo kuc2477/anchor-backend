@@ -42,7 +42,7 @@ class Base(object):
 
     # Celery
     CELERY_BROKER_URL = None
-    CELERY_RESULT_BACKEND = 'rpc://'
+    CELERY_RESULT_BACKEND = 'redis://localhost'
 
     # Crossbar
     CROSSBAR_REALM = u'anchor'

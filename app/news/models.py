@@ -119,5 +119,4 @@ class NewsListResource(PaginatedResource):
         else:
             return self.model.query\
                 .join(Schedule)\
-                .join(User)\
                 .filter(Schedule.owner_id == current_user.id)

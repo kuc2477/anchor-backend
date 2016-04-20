@@ -1,4 +1,4 @@
-* FEATURE GOALS [60%]
+* FEATURE GOALS [80%]
 
   - [X] Authentication system [100%]
         - [X] Email verification based signup system
@@ -15,10 +15,10 @@
         - [X] add schedule state serialization
         - [X] add scheduler running command in manage.py
 
-  - [ ] Crossbar RPC router based news feed notification [0%]
-        - [ ] add crossbar router
-        - [ ] add crossbar router running command in manage.py
-        - [ ] implement cover callback function that sends push messages to
+  - [X] Crossbar RPC router based news feed notification [100%]
+        - [X] add crossbar router
+        - [X] add crossbar router running command in manage.py
+        - [X] implement cover callback function that sends push messages to
               the crossbar router
 
   - [ ] Neural network based news classifier [0%]
