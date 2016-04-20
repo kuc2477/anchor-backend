@@ -117,6 +117,7 @@ class NewsListResource(PaginatedResource):
         if current_user.is_anonymous:
             return News.query.filter(sql.false())
         else:
-            return self.model.query.join(Schedule).filter(
-                Schedule.owner_id == current_user.id
-            )
+            return self.model.query\
+                .join(Schedule)\
+                .join(User)\
+                .filter(Schedule.owner_id == current_user.id)
