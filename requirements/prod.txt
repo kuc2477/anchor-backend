@@ -1,1 +1,3 @@
 -r base.txt
+fabric==1.11.1
+boto3==1.3.0
