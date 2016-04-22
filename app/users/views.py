@@ -40,7 +40,7 @@ api.add_resource(UserResource, '/users/<int:id>')
 
 @bp.route('/login', methods=['POST'])
 def login():
-    form = AuthenticationForm(request.form)
+    form = AuthenticationForm(**request.json)
     form.validate()
 
     user = User.query.filter_by(email=form.email.data).first_or_404()
@@ -63,7 +63,7 @@ def logout():
 
 @bp.route('/signup', methods=['POST'])
 def signup():
-    form = SignupForm(request.form)
+    form = SignupForm(**request.json)
     form.validate()
 
     if get_user(form.email.data):
