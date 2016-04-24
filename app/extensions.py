@@ -1,8 +1,13 @@
 import time
 from celery import Celery
 from redis import Redis, ConnectionPool
+from flask import session
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import LoginManager
+from flask.ext.login import (
+    LoginManager,
+    current_user,
+    encode_cookie,
+)
 from flask.ext.marshmallow import Marshmallow
 from flask.ext.mail import Mail
 from flask.ext.admin import Admin

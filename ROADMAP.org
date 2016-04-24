@@ -1,4 +1,4 @@
-* FEATURE GOALS [80%]
+* FEATURE GOALS [57%]
 
   - [X] Authentication system [100%]
         - [X] Email verification based signup system
@@ -25,3 +25,11 @@
         - [ ] make decision what features to feed to the neural network
         - [ ] build neural network based news classifier
         - [ ] build persistent machine learning system with celery
+
+  - [ ] BUGS [0%]
+    - [ ] News restful pagination
+    - [ ] News duplicated integrity error [0%]
+      - [ ] check asyncio lock
+      - [ ] check backend save implementation
+
+    - [ ] Celery result not getting synchronized

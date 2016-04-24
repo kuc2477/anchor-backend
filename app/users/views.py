@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import (
     Blueprint,
     request,
+    session,
     jsonify,
     render_template
 )
@@ -9,6 +10,7 @@ from flask.ext.login import (
     current_user,
     login_user,
     logout_user,
+    encode_cookie,
 )
 from flask.ext.restful import (
     Api,
@@ -48,7 +50,8 @@ def login():
         abort(401)
 
     if login_user(user):
-        return jsonify({'user': user.serialized})
+        session_key = encode_cookie(str(session.get('user_id')))
+        return jsonify({ 'user': user.serialized, 'session_key': session_key })
     else:
         return error('User account has not been confirmed yet',
                      401, email=user.email)

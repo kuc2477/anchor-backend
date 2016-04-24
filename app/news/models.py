@@ -120,3 +120,7 @@ class NewsListResource(PaginatedResource):
             return self.model.query\
                 .join(Schedule)\
                 .filter(Schedule.owner_id == current_user.id)
+
+    def get_filtered(self, instances):
+        return [n for n in instances if
+                n.current_user_rating is None or n.current_user_rating]

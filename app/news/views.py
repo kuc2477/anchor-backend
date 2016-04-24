@@ -55,18 +55,15 @@ def rate_news(id):
 
 @bp.route('/news/<int:id>/ratings', methods=['DELETE'])
 def cancel_rating(id):
-    form = RatingDetailForm(**request.json)
-    form.validate()
-
     if current_user.is_anonymous:
         abort(400)
 
-    # post data
+    # check if news exists
     news = News.query.get_or_404(id)
-    user_id = form.user.data or current_user.id
 
     # find existing rating of the current user of target news
-    rating = Rating.query.filter_by(news_id=news.id, user_id=user_id).first()
+    rating = Rating.query.filter_by(
+        news_id=id, user_id=current_user.id).first()
 
     # try to delete the existing rating
     if not rating:

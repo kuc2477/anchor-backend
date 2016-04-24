@@ -14,6 +14,16 @@ class PaginatedResource(Resource):
     def get_query(self):
         return self.model.query
 
+    def get_filtered(self, instances):
+        return instances
+
+    def get_link(self, current_page):
+        return '{}?{}={}'.format(
+            self.url,
+            self.pagination_key,
+            current_page + 1
+        )
+
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument(self.pagination_key, type=int)
@@ -24,10 +34,12 @@ class PaginatedResource(Resource):
             .offset(self.pagination_size * page)\
             .all()
 
+        filtered = self.get_filtered(instances)
+
         schema = self.schema(many=True)
-        link = '{}?{}={}'.format(self.url, self.pagination_key, page + 1)
-        return schema.dump(instances).data, 200, (
-            {self.link_key: link} if len(instances) >= self.pagination_size
+        return schema.dump(filtered).data, 200, (
+            {self.link_key: self.get_link(page)}
+            if len(instances) >= self.pagination_size
             else None
         )
 

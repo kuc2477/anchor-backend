@@ -59,14 +59,6 @@ class RunRedis(Command):
         subprocess.call(['redis-server'])
 
 
-class RunBroker(Command):
-    def run(self):
-        if 'nt' in os.name:
-            subprocess.call([shutil.which('rabbitmq-server'), 'start'])
-        else:
-            subprocess.call(['sudo', shutil.which('rabbitmq-server'), 'start'])
-
-
 class RunNotifier(Command):
     def run(self):
         url = app.config['CROSSBAR_URL']
@@ -80,7 +72,6 @@ manager.add_command('db', MigrateCommand)
 manager.add_command('createsuperuser', CreateSuperUser)
 manager.add_command('runscheduler', RunScheduler)
 manager.add_command('runcelery', RunCelery)
-manager.add_command('runbroker', RunBroker)
 manager.add_command('runredis', RunRedis)
 manager.add_command('runnotifier', RunNotifier)
 

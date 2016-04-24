@@ -41,8 +41,10 @@ class Base(object):
     MAIL_USE_SSL = True
 
     # Celery
-    CELERY_BROKER_URL = None
-    CELERY_RESULT_BACKEND = 'redis://localhost'
+    CELERY_BROKER_URL = BROKER_URL = 'redis://localhost:6379'
+    CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+    CELERY_RESULT_ENGINE_OPTIONS = {'echo': False}
+    CELERY_REDIRECT_STDOUTS = False
 
     # Crossbar
     CROSSBAR_REALM = u'anchor'
@@ -53,9 +55,6 @@ class Dev(Base):
     # Mode
     ADMIN = True
     DEBUG = True
-
-    # Database
-    SQLALCHEMY_ECHO = True
 
 
 class Test(Base):
