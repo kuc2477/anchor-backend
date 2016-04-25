@@ -13,6 +13,7 @@ from flask.ext.marshmallow import Marshmallow
 from flask.ext.mail import Mail
 from flask.ext.admin import Admin
 from flask.ext.admin.contrib.sqla import ModelView
+from news.utils.logging import logger
 from news.backends.sqlalchemy import SQLAlchemyBackend
 from news.persister import Persister
 from news.scheduler import Scheduler
@@ -61,6 +62,10 @@ admin = Admin()
 # notifier component
 class NotifierComponent(ApplicationSession):
     def notify(self, topic, message):
+        logger.info(
+            '[Notifier] push {} on {} to the router'
+            .format(message, topic)
+        )
         self.publish(topic, message)
 
     @coroutine

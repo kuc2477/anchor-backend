@@ -48,7 +48,7 @@ class Base(object):
 
     # Crossbar
     CROSSBAR_REALM = u'anchor'
-    CROSSBAR_URL = u'ws://localhost:8080/ws'
+    CROSSBAR_URL = u'ws://localhost:9000/ws'
 
 
 class Dev(Base):
