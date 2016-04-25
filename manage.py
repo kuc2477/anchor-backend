@@ -1,8 +1,4 @@
-from __future__ import print_function
-from __future__ import absolute_import
-import os
 import subprocess
-import shutil
 from getpass import getpass
 from autobahn.asyncio.wamp import ApplicationRunner
 from flask.ext.script import Manager, Command
