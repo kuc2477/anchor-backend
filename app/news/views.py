@@ -36,7 +36,7 @@ def latest_news():
         query = News.query.filter(sql.false())
     else:
         query = News.query.join(Schedule)\
-            .filter(Schedule.owner_id == current_user._id)\
+            .filter(Schedule.owner_id == current_user.id)\
             .order_by(desc(News.created))\
             .limit(LATEST_NEWS_PAGINATION_SIZE)\
 
@@ -45,7 +45,7 @@ def latest_news():
                 n.current_user_rating is None or n.current_user_rating]
 
     schema = NewsSchema(many=True)
-    return jsonify(schema.dump(filtered).data)
+    return jsonify(schema.dump(filtered).data), 200
 
 
 @bp.route('/news/<int:id>/ratings', methods=['POST', 'PUT'])
