@@ -48,13 +48,17 @@ class Base(object):
 
     # Crossbar
     CROSSBAR_REALM = u'anchor'
-    CROSSBAR_URL = u'ws://localhost:9000/ws'
+    CROSSBAR_URL = u'ws://localhost:8080/ws'
 
 
 class Dev(Base):
     # Mode
     ADMIN = True
     DEBUG = True
+
+    # Crossbar
+    CROSSBAR_REALM = u'realm1'
+    CROSSBAR_URL = u'wss://demo.crossbar.io/ws'
 
 
 class Test(Base):

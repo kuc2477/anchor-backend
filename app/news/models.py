@@ -4,6 +4,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     Boolean,
+    desc
 )
 from sqlalchemy import sql
 from sqlalchemy.schema import UniqueConstraint
@@ -112,14 +113,16 @@ class NewsResource(Resource):
 class NewsListResource(PaginatedResource):
     model = News
     schema = NewsSchema
+    pagination_size = 20
 
     def get_query(self):
         if current_user.is_anonymous:
             return News.query.filter(sql.false())
         else:
-            return self.model.query\
+            return News.query\
                 .join(Schedule)\
-                .filter(Schedule.owner_id == current_user.id)
+                .filter(Schedule.owner_id == current_user.id)\
+                .order_by(desc(News.created))
 
     def get_filtered(self, instances):
         return [n for n in instances if
