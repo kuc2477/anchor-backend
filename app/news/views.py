@@ -10,7 +10,10 @@ from flask import (
 from flask.ext.login import current_user
 from flask.ext.restful import Api
 from flask.ext.restful import abort
-from ..constants import LATEST_NEWS_PAGINATION_SIZE
+from ..constants import (
+    LATEST_NEWS_PAGINATION_SIZE,
+    NEWS_RECOMMENDATION_SIZE
+)
 from ..extensions import db
 from ..schedules.models import Schedule
 from .models import (
@@ -46,6 +49,14 @@ def latest_news():
 
     schema = NewsSchema(many=True)
     return jsonify(schema.dump(filtered).data), 200
+
+
+@bp.route('/news/recommendations', methods=['GET'])
+def recomendations():
+    if current_user.is_anonymous:
+        return '', 400
+
+    # TODO: NOT IMPLEMENTED YET
 
 
 @bp.route('/news/<int:id>/ratings', methods=['POST', 'PUT'])
