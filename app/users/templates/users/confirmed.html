@@ -1,13 +1,9 @@
 {% extends "index.html" %}
 
+<!-- no bootstrap -->
+{% block vendor %}{% endblock %}
 {% block content %}
-
-
-<div class='jumbotron'>
-    <div class='container'>
-        <h1>CONFIRMED!</h1>
-        <p>Now your anchor account is available throughout the Anchor service!</p>
-        <p>Anchor team - {{ date }}</p>
-    </div>
-</div>
+<h1>CONFIRMED!</h1>
+<p>Now your anchor account is available throughout the Anchor service!</p>
+<p>Anchor team - {{ date }}</p>
 {% endblock content %}

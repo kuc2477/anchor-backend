@@ -21,6 +21,7 @@ class Base(object):
     TESTING = False
 
     # Database
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_DATABASE_URI = \
         'postgresql+psycopg2://{0}:{1}@localhost:5432/{2}'.format(
@@ -41,10 +42,11 @@ class Base(object):
     MAIL_USE_SSL = True
 
     # Celery
-    CELERY_BROKER_URL = BROKER_URL = 'redis://localhost:6379'
-    CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+    CELERY_BROKER_URL = BROKER_URL = 'redis://'
+    CELERY_RESULT_BACKEND = 'redis://'
     CELERY_RESULT_ENGINE_OPTIONS = {'echo': False}
     CELERY_REDIRECT_STDOUTS = False
+    CELERY_TRACK_STARTED = True
 
     # Crossbar
     CROSSBAR_REALM = u'anchor'

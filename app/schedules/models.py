@@ -56,6 +56,10 @@ class ABCSchedule(create_abc_schedule(User)):
         schema = ScheduleSchema()
         return schema.dump(self).data
 
+    @property
+    def state(self):
+        return self.get_state(celery)
+
 
 Schedule = create_schedule(ABCSchedule, db.Model, persister=persister)
 

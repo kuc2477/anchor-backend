@@ -61,24 +61,38 @@ admin = Admin()
 
 # notifier component
 class NotifierComponent(ApplicationSession):
-    def notify(self, topic, message):
+    def notify(self, topic, *args):
         logger.info(
-            '[Notifier] push {} on {} to the router'
+            '[Notifier] Push {} on {} to the router'
             .format(message, topic)
         )
-        self.publish(topic, message)
+        self.publish(topic, *args)
+
+    def notify_schedule_state(self, topic, schedule):
+        if not schedule:
+            logger.warning('[Notifier] Invalid schedule passed to notifier')
+            return
+        self.notify(topic, schedule.id, schedule.state)
+
+    def _get_schedule(self, message):
+        from .schedules.models import Schedule
+        id = int(message['data'])
+        return Schedule.query.get(id)
+
+    def _on_cover_started(self, message):
+        schedule = self._get_schedule(message)
+        self.notify_schedule_state(TOPIC_COVER_STARTED, schedule)
+
+    def _on_cover_finished(self, message):
+        schedule = self._get_schedule(message)
+        self.notify_schedule_state(TOPIC_COVER_STARTED, schedule)
 
     @coroutine
     def onJoin(self, details):
         self.pubsub = redis.pubsub()
         self.pubsub.subscribe(**{
-            # publish notification to crossbar router on cover start
-            REDIS_COVER_START_CHANNEL: lambda message:
-            self.notify(TOPIC_COVER_STARTED, int(message['data'])),
-
-            # publish notification to crossbar router on cover finish
-            REDIS_COVER_FINISHED_CHANNEL: lambda message:
-            self.notify(TOPIC_COVER_FINISHED, int(message['data']))
+            REDIS_COVER_START_CHANNEL: self._on_cover_started,
+            REDIS_COVER_FINISHED_CHANNEL: self._on_cover_finished
         })
         while True:
             self.pubsub.get_message()
@@ -137,7 +151,11 @@ def configure_scheduler(app, user_model, schedule_model, news_model):
     def on_cover_finish(schedule, news_list):
         redis.publish(REDIS_COVER_FINISHED_CHANNEL, str(schedule.id))
 
-    scheduler.configure(backend=backend, celery=celery, persister=persister)
+    scheduler.configure(
+        backend=backend, celery=celery, persister=persister,
+        on_cover_start=on_cover_start,
+        on_cover_finish=on_cover_finish,
+    )
 
 
 def configure_db(app):
@@ -165,24 +183,20 @@ def configure_mail(app):
 
 
 def configure_admin(app):
-    user_model_view = type(
-        'UserModelView', (ModelView,),
-        {'form_excluded_columns': ['password_hash']}
-    )
-    schedule_model_view = type('ScheduleModelView', (ModelView,), {})
-    news_model_view = type('NewsModelView', (ModelView,), {})
-    rating_model_view = type('RatingModelView', (ModelView,), {})
-
     from .users.models import User
     from .schedules.models import Schedule
     from .news.models import News, Rating
+    from .corpus.models import Corpus
+    from .mlp.models import MLP
 
     admin.init_app(app)
     admin.add_views(
-        user_model_view(User, db.session),
-        schedule_model_view(Schedule, db.session),
-        news_model_view(News, db.session),
-        rating_model_view(Rating, db.session),
+        ModelView(User, db.session),
+        ModelView(Schedule, db.session),
+        ModelView(News, db.session),
+        ModelView(Rating, db.session),
+        ModelView(Corpus, db.session),
+        ModelView(MLP, db.session)
     )
 
 

@@ -18,3 +18,7 @@ validators==0.10
 wtforms==2.1
 crossbar==0.13.2
 autobahn==0.13.1
+numpy==1.11.0
+scipy==0.17.0
+scikit-learn==0.17.1
+scikit-neuralnetwork==0.7
