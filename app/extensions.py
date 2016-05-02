@@ -2,7 +2,6 @@ from __future__ import absolute_import
 import time
 from celery import Celery
 from redis import Redis, ConnectionPool
-from flask import session
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.login import (
     LoginManager,
@@ -63,8 +62,8 @@ admin = Admin()
 class NotifierComponent(ApplicationSession):
     def notify(self, topic, *args):
         logger.info(
-            '[Notifier] Push {} on {} to the router'
-            .format(message, topic)
+            '[Notifier] Push message on {} to the router'
+            .format(topic)
         )
         self.publish(topic, *args)
 
@@ -187,7 +186,7 @@ def configure_admin(app):
     from .schedules.models import Schedule
     from .news.models import News, Rating
     from .corpus.models import Corpus
-    from .mlp.models import MLP
+    from .classifiers.models import MLP, SVM
 
     admin.init_app(app)
     admin.add_views(
@@ -196,7 +195,8 @@ def configure_admin(app):
         ModelView(News, db.session),
         ModelView(Rating, db.session),
         ModelView(Corpus, db.session),
-        ModelView(MLP, db.session)
+        ModelView(MLP, db.session),
+        ModelView(SVM, db.session),
     )
 
 

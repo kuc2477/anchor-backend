@@ -55,7 +55,6 @@ def latest_news():
 def recomendations():
     if current_user.is_anonymous:
         return '', 400
-
     # TODO: NOT IMPLEMENTED YET
 
 

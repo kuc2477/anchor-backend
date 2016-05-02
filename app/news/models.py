@@ -34,7 +34,12 @@ class ABCNews(create_abc_news(Schedule)):
 
     @property
     def current_user_rating(self):
-        if current_user.is_anonymous:
+        return self.get_rating(current_user)
+
+    def get_rating(self, user=None):
+        user = user or current_user
+
+        if user.is_anonymous:
             return None
         try:
             rating = [r for r in self.ratings if r.user == self.owner][0]
