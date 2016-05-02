@@ -6,7 +6,6 @@ from sqlalchemy import (
     DateTime
 )
 from sqlalchemy_utils.types import JSONType
-from ..users.models import User
 from ..news.models import News
 from ..extensions import db
 from ..constants import (
@@ -44,7 +43,6 @@ class Corpus(db.Model):
         return (w for w, c in counts.most_common(size))
 
     def extract_features(self, news):
-        owner = news.schedule.owner
         counts = Counter(news.words)
         return [counts.get(w, 0) for w in self.words]
 

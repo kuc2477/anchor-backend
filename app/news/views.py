@@ -22,6 +22,8 @@ from .models import (
     Rating,
     NewsResource,
     NewsListResource,
+    LatestNewsResource,
+    NewsRecommendationResource,
 )
 from .forms import BaseRatingForm
 
@@ -31,31 +33,8 @@ bp = Blueprint('news_bp', __name__, template_folder='templates')
 api = Api(bp)
 api.add_resource(NewsResource, '/news/<int:id>')
 api.add_resource(NewsListResource, '/news')
-
-
-@bp.route('/news/latest', methods=['GET'])
-def latest_news():
-    if current_user.is_anonymous:
-        query = News.query.filter(sql.false())
-    else:
-        query = News.query.join(Schedule)\
-            .filter(Schedule.owner_id == current_user.id)\
-            .order_by(desc(News.created))\
-            .limit(LATEST_NEWS_PAGINATION_SIZE)\
-
-    instances = query.all()
-    filtered = [n for n in instances if
-                n.current_user_rating is None or n.current_user_rating]
-
-    schema = NewsSchema(many=True)
-    return jsonify(schema.dump(filtered).data), 200
-
-
-@bp.route('/news/recommendations', methods=['GET'])
-def recomendations():
-    if current_user.is_anonymous:
-        return '', 400
-    # TODO: NOT IMPLEMENTED YET
+api.add_resource(LatestNewsResource, '/news/latest')
+api.add_resource(NewsRecommendationResource, '/news/recommendations')
 
 
 @bp.route('/news/<int:id>/ratings', methods=['POST', 'PUT'])

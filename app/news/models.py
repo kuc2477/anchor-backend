@@ -10,7 +10,10 @@ from sqlalchemy import sql
 from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declared_attr
-from flask.ext.restful import Resource
+from flask.ext.restful import (
+    Resource,
+    abort,
+)
 from flask.ext.login import current_user
 from news.models.sqlalchemy import (
     create_abc_news, create_news
@@ -130,5 +133,36 @@ class NewsListResource(PaginatedResource):
                 .order_by(desc(News.created))
 
     def get_filtered(self, instances):
-        return [n for n in instances if
-                n.current_user_rating is None or n.current_user_rating]
+        return [
+            n for n in instances if
+            (n.current_user_rating is None or n.current_user_rating) and
+            n.image
+        ]
+
+
+class LatestNewsResource(Resource):
+    def get(self):
+        if current_user.is_anonymous:
+            query = News.query.filter(sql.false())
+        else:
+            query = News.query.join(Schedule)\
+                .filter(Schedule.owner_id == current_user.id)\
+                .order_by(desc(News.created))\
+                .limit(LATEST_NEWS_PAGINATION_SIZE)\
+
+        instances = query.all()
+        filtered = [n for n in instances if
+                    n.current_user_rating is None or n.current_user_rating]
+
+        schema = NewsSchema(many=True, exclude='content')
+        return schema.dump(filtered).data
+
+
+class NewsRecommendationResource(Resource):
+    def get(self):
+        if current_user.is_anonymous:
+            abort(400)
+
+        recommendations = current_user.get_recommendations()
+        schema = NewsSchema(many=True, exclude='content')
+        return schema.dump(recommendations).data

@@ -1,4 +1,4 @@
-* FEATURE GOALS [57%]
+* FEATURE GOALS [100%]
 
   - [X] Authentication system [100%]
         - [X] Email verification based signup system
@@ -21,15 +21,15 @@
         - [X] implement cover callback function that sends push messages to
               the crossbar router
 
-  - [ ] Neural network based news classifier [0%]
-        - [ ] make decision what features to feed to the neural network
-        - [ ] build neural network based news classifier
-        - [ ] build persistent machine learning system with celery
+  - [X] Neural network based news classifier [100%]
+        - [X] make decision what features to feed to the neural network
+        - [X] build neural network based news classifier
+        - [X] build persistent machine learning system with celery
 
-  - [ ] BUGS [0%]
-    - [ ] News restful pagination
-    - [ ] News duplicated integrity error [0%]
-      - [ ] check asyncio lock
-      - [ ] check backend save implementation
+  - [X] BUGS [100%]
+    - [X] News restful pagination
+    - [X] News duplicated integrity error [100%]
+      - [X] check asyncio lock
+      - [X] check backend save implementation
 
-    - [ ] Celery result not getting synchronized
+    - [X] Celery result not getting synchronized

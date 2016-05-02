@@ -186,7 +186,7 @@ def configure_admin(app):
     from .schedules.models import Schedule
     from .news.models import News, Rating
     from .corpus.models import Corpus
-    from .classifiers.models import MLP, SVM
+    from .classifiers.models import SVM
 
     admin.init_app(app)
     admin.add_views(
@@ -195,7 +195,6 @@ def configure_admin(app):
         ModelView(News, db.session),
         ModelView(Rating, db.session),
         ModelView(Corpus, db.session),
-        ModelView(MLP, db.session),
         ModelView(SVM, db.session),
     )
 
