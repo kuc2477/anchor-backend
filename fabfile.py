@@ -3,7 +3,7 @@ from fabric.api import *
 from fabric.operations import get, put
 
 
-NAME = 'anchor-backend'
+VHOST = 'anchor'
 APPS_DIR = '/production'
 APP_DIR = os.path.join(APPS_DIR, VHOST)
 
