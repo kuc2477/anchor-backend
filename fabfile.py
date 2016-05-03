@@ -1,6 +1,6 @@
 import os.path
+from contextlib import contextmanager
 from fabric.api import *
-from fabric.operations import get, put
 
 
 VHOST = 'anchor'
@@ -17,24 +17,45 @@ STATIC = 'static'
 # EVIRONMENT
 # ==========
 
-def _use_python2():
-    pass
+def _install_pyenv():
+    # pyenv dependencies
+    sudo(' '.join([
+        'apt-get install -y make build-essential libssl-dev zlib1g-dev',
+        'libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm',
+        'libncurses5-dev',
+    ]))
+    # pyenv
+    sudo('curl -L ' +
+         'https://raw.githubusercontent.com/yyuu/pyenv-installer/' +
+         'master/bin/pyenv-installer | bash')
+    # install python
+    run('pyenv install 3.5.1')
+    run('pyenv shell 3.5.1')
+    run('pyenv virtualenv anchor')
 
 
-def _use_python3():
-    pass
+@contextmanager
+def _system_python():
+    run('pyenv shell system')
+    yield
+    run('pyenv shell anchor')
 
 
-def _use_production():
-    pass
+@contextmanager
+def _production_python():
+    run('pyenv shell anchor')
+    yield
+    run('pyenv shell system')
 
 
-def _turn_on_swap():
-    pass
-
-
-def _turn_off_swap():
-    pass
+@contextmanager
+def _swap_enabled():
+    sudo('/bin/dd if=/dev/zero of=/var/swap.1 bs-1M count=1024')
+    sudo('/sbin/mkswap /var/swap.1')
+    sudo('/sbin/swapon /var/swap.1')
+    yield
+    sudo('swapoff /var/swap.1')
+    sudo('rm /var/swap.1')
 
 
 # ==================
@@ -47,7 +68,7 @@ def _clone_repo():
 
 
 def _update_repo():
-    with cd(APP_DIR):
+    with cd(APP_DIR), _production_python():
         run('git checkout master')
         run('git pull origin master')
         run('pip install -r requirements/prod.txt')
@@ -80,13 +101,11 @@ def _reload_supervisor():
 
 
 def _start_app():
-    # TODO: NOT IMPLEMENTED YET
-    pass
+    sudo('supervisorctl start {}'.format(VHOST))
 
 
 def _reload_app():
-    # TODO: NOT IMPLEMENTED YET
-    pass
+    sudo('supervisorctl restart {}'.format(VHOST))
 
 
 # ============
@@ -99,15 +118,13 @@ def _install_build_dependencies():
 
 
 def _install_deployment_dependencies():
-    with cd(APP_DIR):
+    with cd(APP_DIR), _system_python():
         run('pip install -r requirements/depl.txt')
 
 
 def _install_production_dependencies():
-    with cd(APP_DIR):
-        _turn_on_swap()
-        run('pip install -r requirements/prod.txt')
-        _turn_off_swap()
+    with cd(APP_DIR), _production_python(), _swap_enabled():
+            run('pip install -r requirements/prod.txt')
 
 
 # =================
@@ -115,16 +132,23 @@ def _install_production_dependencies():
 # =================
 
 def init_deploy():
+    # clone fresh source code from github
     _clone_repo()
 
+    # install build / system dependencies and pruduction python dependencies
     _install_build_dependencies()
     _install_deployment_dependencies()
     _install_production_dependencies()
 
+    # make vhost and supervisor configurations
     _make_vhost()
     _make_supervisor_conf()
+
+    # kick off webserver and supervisor
     _reload_webserver()
     _reload_supervisor()
+
+    # start app server
     _start_app()
 
 
