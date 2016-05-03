@@ -35,17 +35,17 @@ def _install_pyenv():
 
 
 @contextmanager
-def _system_python():
+def _system_python(after='anchor'):
     run('pyenv shell system')
     yield
-    run('pyenv shell anchor')
+    run('pyenv shell {}'.format(after))
 
 
 @contextmanager
-def _production_python():
+def _production_python(after='system'):
     run('pyenv shell anchor')
     yield
-    run('pyenv shell system')
+    run('pyenv shell {}'.format(after))
 
 
 @contextmanager
@@ -118,12 +118,12 @@ def _install_build_dependencies():
 
 
 def _install_deployment_dependencies():
-    with cd(APP_DIR), _system_python():
+    with cd(APP_DIR), _system_python(after='system'):
         run('pip install -r requirements/depl.txt')
 
 
 def _install_production_dependencies():
-    with cd(APP_DIR), _production_python(), _swap_enabled():
+    with cd(APP_DIR), _production_python(after='anchor'), _swap_enabled():
             run('pip install -r requirements/prod.txt')
 
 
