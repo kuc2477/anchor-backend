@@ -33,6 +33,13 @@ def _render(string, context):
     return Template(string).render(context)
 
 
+# ===============
+# FABRIC SETTINGS
+# ===============
+
+env.shell = '/bin/bash -l -i -c'
+
+
 # ==========
 # EVIRONMENT
 # ==========
