@@ -1,7 +1,6 @@
 from datetime import timedelta
 from secret import (
     DB_NAME,
-    DB_URI,
     DB_ENDPOINT,
     DB_PORT,
     DB_USERNAME,
