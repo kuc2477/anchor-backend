@@ -13,6 +13,8 @@ except NameError:
 DEFAULT_DB_NAME = 'anchor'
 DEFAULT_DB_USERNAME = 'postgres'
 DEFAULT_MAIL_SERVER = 'smtp.gmail.com'
+DEFAULT_DB_ENDPOINT = 'localhost'
+DEFAULT_DB_PORT = '5432'
 
 
 def ask_boolean(prompt):
@@ -36,6 +38,12 @@ def run():
     prompt = 'Enter database username [{0}]: '.format(DEFAULT_DB_USERNAME)
     db_username = input(prompt) or DEFAULT_DB_USERNAME
     db_password = getpass('Enter database password: ')
+
+    prompt = 'Enter database endpoint [{}]: '.format(DEFAULT_DB_ENDPOINT)
+    db_endpoint = input(prompt) or DEFAULT_DB_ENDPOINT
+
+    prompt = 'Enter database port [{}]: '.format(DEFAULT_DB_PORT)
+    db_port = input(prompt) or DEFAULT_DB_PORT
 
     if secret is None or 'SECRET_KEY' not in secret.__dict__:
         print('Secret key not found. Generating...')
@@ -64,6 +72,8 @@ def run():
         'db_name': db_name,
         'db_username': db_username,
         'db_password': db_password,
+        'db_endpoint': db_endpoint,
+        'db_port': db_port,
         'secret_key': secret_key,
         'secret_key_changed': 'CHANGED' if secret_key_changed else 'UNCHANGED',
         'secret_salt': secret_salt,
@@ -80,6 +90,8 @@ def run():
         'db_name: {db_name}',
         'db username: {db_username}',
         'db password: {db_password}',
+        'db endpoint: {db_endpoint}',
+        'db port: {db_port}',
         'secret_key: {secret_key} ({secret_key_changed})',
         'secret_salt: {secret_salt} ({secret_salt_changed})',
         'mail_server: {mail_server}',
@@ -91,6 +103,8 @@ def run():
     template = '\n'.join([
         "DB_NAME = '{db_name}'",
         "DB_USERNAME = '{db_username}'",
+        "DB_ENDPOINT = '{db_endpoint}'",
+        "DB_PORT = '{db_port}'",
         "DB_PASSWORD = '{db_password}'",
         "SECRET_KEY = '{secret_key}'",
         "SECRET_SALT = '{secret_salt}'",

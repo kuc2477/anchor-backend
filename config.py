@@ -1,6 +1,9 @@
 from datetime import timedelta
 from secret import (
     DB_NAME,
+    DB_URI,
+    DB_ENDPOINT,
+    DB_PORT,
     DB_USERNAME,
     DB_PASSWORD,
     SECRET_KEY,
@@ -24,8 +27,8 @@ class Base(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SQLALCHEMY_ECHO = False
     SQLALCHEMY_DATABASE_URI = \
-        'postgresql+psycopg2://{0}:{1}@localhost:5432/{2}'.format(
-            DB_USERNAME, DB_PASSWORD, DB_NAME
+        'postgresql+psycopg2://{}:{}@{}:{}/{}'.format(
+            DB_USERNAME, DB_PASSWORD, DB_ENDPOINT, DB_PORT, DB_NAME
         )
 
     # Session
