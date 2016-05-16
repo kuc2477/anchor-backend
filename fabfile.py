@@ -1,16 +1,36 @@
+import StringIO
 import os.path
+from jinja2 import Template
 from contextlib import contextmanager
 from fabric.api import *
 
 
+# source repository
+REPO = 'https://github.com/kuc2477/anchor-backend'
+
+# vhost
 VHOST = 'anchor'
+
+# application paths
 APPS_DIR = '/production'
 APP_DIR = os.path.join(APPS_DIR, VHOST)
+APP_MODULE = 'wsgi'
+APP_CALLABLE = 'app'
 
-REPO = 'https://github.com/kuc2477/anchor-backend'
+# supervisor paths
 SUPERVISOR_DIR = '/etc/supervisor/conf.d/'
+
+# nginx paths
 NGINX_DIR = '/etc/nginx/sites-'
+NGINX_AVAILABLE_DIR = '{}available'.format(NGINX_DIR)
+NGINX_ENABLED_DIR = '{}enabled'.format(NGINX_DIR)
+
+# static paths
 STATIC = 'static'
+
+
+def _render(string, context):
+    return Template(string).render(context)
 
 
 # ==========
@@ -79,13 +99,38 @@ def _update_repo():
 # =====================
 
 def _make_supervisor_conf():
-    # TODO: NOT IMPLEMENTED YET
-    pass
+    with open('./templates/conf/supervisor.tpl') as f:
+        template = f.read()
+    interpolated = StringIO.StringIO()
+    interpolated.write(_render(template, {
+        'domain': VHOST,
+        'root': APP_DIR,
+        'module': APP_MODULE,
+        'callable': APP_CALLABLE
+    }))
+
+    sudo('mkdir -p {}', SUPERVISOR_DIR)
+    put(interpolated, '{}.conf'.format(os.path.join(SUPERVISOR_DIR, VHOST)),
+        use_sudo=True)
 
 
 def _make_vhost():
-    # TODO: NOT IMPLEMENTED YET
-    pass
+    with open('./templates/conf/nginx.tpl') as f:
+        template = f.read()
+    interpolated = StringIO.StringIO()
+    interpolated.write(_render(template, {
+        'domain': VHOST,
+        'root': APP_DIR,
+        'static': STATIC
+    }))
+
+    put(interpolated, os.path.join(NGINX_AVAILABLE_DIR, VHOST), use_sudo=True)
+    sudo('ln -sf {} {}'.format(
+        os.path.join(NGINX_AVAILABLE_DIR, VHOST),
+        os.path.join(NGINX_ENABLED_DIR, VHOST)
+    ))
+    run('touch {}'.format(os.path.join(APP_DIR, 'access.log')))
+    run('touch {}'.format(os.path.join(APP_DIR, 'error.log')))
 
 
 # =======

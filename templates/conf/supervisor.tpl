@@ -1,20 +1,15 @@
 [program:{{ domain }}]
 command=uwsgi
   --socket uwsgi.sock
-  --pythonpath /
-  --touch-reload /app.wsgi
   --chmod-socket 666
-  --uid www-data
-  --gid www-data
   --processes 1
   --master
   --no-orphans
   --max-requests 5000
   --module {{ module }}
-  --callable app
+  --callable {{ callable }}
 directory={{ root }}
 stdout_logfile={{ root }}/uwsgi.log
-user=www-data
 autostart=true
 autorestart=true
 redirect-stderr=true

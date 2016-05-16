@@ -7,7 +7,7 @@ server {
     error_log         {{ root }}/error.log;
 
     location / {
-        uwsgi_pass    unix:///{{ root }}/uwsgi.sock;
+        uwsgi_pass    unix://{{ root }}/uwsgi.sock;
         include       uwsgi_params;
     }
 
