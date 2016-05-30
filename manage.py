@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import subprocess
 from getpass import getpass
 from autobahn.asyncio.wamp import ApplicationRunner

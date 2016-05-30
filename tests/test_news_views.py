@@ -17,7 +17,7 @@ def test_news_resource_get(news, client):
     res = client.get('/api/news/{}'.format(news.id))
     data = json.loads(res.data.decode('utf-8'))
     assert(data['id'] == news.id)
-    assert(data['content'] == news.content)
+    assert('content' not in data)
     assert(data['url'] == news.url)
     assert(data['schedule'] == news.schedule.id)
     assert(data['src'] == (news.src.id if news.src else news.src))

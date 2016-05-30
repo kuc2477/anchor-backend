@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask.ext.restful import Api
-from .models import (
+from .resources import (
     ScheduleResource,
     ScheduleListResource
 )

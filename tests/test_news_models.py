@@ -16,7 +16,10 @@ def test_news_creation(session, schedule):
     news = News(
         schedule=schedule,
         url='http://www.naver.com',
-        content='fixturecontent'
+        title='fixturetitle',
+        content='fixturecontent',
+        summary='fixturesummary',
+        author='fixtureauthor',
     )
     session.add(news)
     session.commit()

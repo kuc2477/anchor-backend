@@ -4,6 +4,7 @@ from wtforms import (
     IntegerField,
     BooleanField,
     FieldList,
+    FormField,
 )
 from wtforms.validators import (
     URL,
@@ -14,19 +15,31 @@ from wtforms.validators import (
 from ..utils.form import abort_on_validation_fail
 
 
+class ScheduleOptionForm(Form):
+    max_dist = IntegerField('Maximum Reporter Visit Distance', [
+        Optional(), NumberRange(max=5)
+    ])
+    max_visit = IntegerField('Maximum Reporter Visit', [
+        Optional(), NumberRange(max=200)
+    ])
+    url_whitelist = FieldList(StringField('URL Whitelist', [
+        Optional(), URL()
+    ]))
+    url_blacklist = FieldList(StringField('URL Blacklist'), [
+        Optional(), URL()
+    ])
+    ext_blacklist = FieldList(StringField('File Extension Blacklist'), [
+        Optional()
+    ])
+
+
 class BaseScheduleForm(Form):
     name = StringField('Name', [Length(min=2, max=50)])
     url = StringField('Url', [URL()])
+    type = StringField('News Type')
     cycle = IntegerField('Cycle', [Optional(), NumberRange(max=600)])
     enabled = BooleanField('Enabled', [Optional()])
-    max_depth = IntegerField('Max depth', [Optional(), NumberRange(max=5)])
-    max_dist = IntegerField('Max distance', [Optional(), NumberRange(max=5)])
-    brothers = FieldList(
-        StringField('Brother', [Optional(), URL()])
-    )
-    blacklist = FieldList(
-        StringField('Blacklist', [Optional(), Length(max=10)])
-    )
+    options = FormField(ScheduleOptionForm, [Optional()])
 
 
 @abort_on_validation_fail

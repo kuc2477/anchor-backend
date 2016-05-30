@@ -8,13 +8,10 @@ def test_schedule_attributes(schedule):
     assert(schedule.name)
     assert(schedule.url)
     assert(isinstance(schedule.owner, User))
-    assert(schedule.cycle)
-    schedule.max_depth
-    schedule.max_dist
-    assert(isinstance(schedule.get_state(celery), str))
-    assert(isinstance(schedule.brothers, list))
-    assert(isinstance(schedule.blacklist, list))
     assert(isinstance(schedule.enabled, bool))
+    assert(schedule.cycle)
+    assert(isinstance(schedule.options, dict))
+    assert(isinstance(schedule.get_state(celery), str))
 
 
 def test_schedule_creation(session, owner):

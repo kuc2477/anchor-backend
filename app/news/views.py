@@ -1,7 +1,3 @@
-from sqlalchemy import (
-    sql,
-    desc,
-)
 from flask import (
     Blueprint,
     request,
@@ -10,20 +6,13 @@ from flask import (
 from flask.ext.login import current_user
 from flask.ext.restful import Api
 from flask.ext.restful import abort
-from ..constants import (
-    LATEST_NEWS_PAGINATION_SIZE,
-    NEWS_RECOMMENDATION_SIZE
-)
 from ..extensions import db
-from ..schedules.models import Schedule
-from .models import (
-    News,
-    NewsSchema,
-    Rating,
+from .models import News, Rating
+from .resources import (
     NewsResource,
     NewsListResource,
-    LatestNewsResource,
-    NewsRecommendationResource,
+    LatestListResource,
+    RecomListResource,
 )
 from .forms import BaseRatingForm
 
@@ -33,8 +22,8 @@ bp = Blueprint('news_bp', __name__, template_folder='templates')
 api = Api(bp)
 api.add_resource(NewsResource, '/news/<int:id>')
 api.add_resource(NewsListResource, '/news')
-api.add_resource(LatestNewsResource, '/news/latest')
-api.add_resource(NewsRecommendationResource, '/news/recommendations')
+api.add_resource(LatestListResource, '/news/latest')
+api.add_resource(RecomListResource, '/news/recommendations')
 
 
 @bp.route('/news/<int:id>/ratings', methods=['POST', 'PUT'])

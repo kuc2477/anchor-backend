@@ -3,11 +3,7 @@ import time
 from celery import Celery
 from redis import Redis, ConnectionPool
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask.ext.login import (
-    LoginManager,
-    current_user,
-    encode_cookie,
-)
+from flask.ext.login import LoginManager
 from flask.ext.marshmallow import Marshmallow
 from flask.ext.mail import Mail
 from flask.ext.admin import Admin
@@ -22,7 +18,6 @@ from .constants import (
     REDIS_COVER_FINISHED_CHANNEL,
     REDIS_COVER_START_CHANNEL,
     TOPIC_COVER_STARTED,
-    TOPIC_COVER_FINISHED,
 )
 
 
@@ -185,7 +180,7 @@ def configure_admin(app):
     from .users.models import User
     from .schedules.models import Schedule
     from .news.models import News, Rating
-    from .corpus.models import Corpus
+    from .corpuses.models import Corpus
     from .classifiers.models import SVM
 
     admin.init_app(app)

@@ -7,7 +7,7 @@ from app.news.models import (
 )
 
 
-@pytest.fixture
+@pytest.fixture(scope='function')
 def owner(request, session):
     u = User(
         email='testemail@test.com',
@@ -17,11 +17,17 @@ def owner(request, session):
     )
     session.add(u)
     session.commit()
+
+    def teardown():
+        session.delete(u)
+        session.commit()
+
+    request.addfinalizer(teardown)
     return u
 
 
-@pytest.fixture
-def schedule(session, owner):
+@pytest.fixture(scope='function')
+def schedule(request, session, owner):
     s = Schedule(
         name='fixturename',
         owner=owner,
@@ -29,23 +35,38 @@ def schedule(session, owner):
     )
     session.add(s)
     session.commit()
+
+    def teardown():
+        session.delete(s)
+        session.commit()
+
+    request.addfinalizer(teardown)
     return s
 
 
-@pytest.fixture
-def news(session, schedule):
+@pytest.fixture(scope='function')
+def news(request, session, schedule):
     n = News(
         schedule=schedule,
         url='http://www.naver.com',
-        content='fixturecontent'
+        title='fixturetitle',
+        author='fixtureauthor',
+        content='fixturecontent',
+        summary='fixturesummary'
     )
     session.add(n)
     session.commit()
+
+    def teardown():
+        session.delete(n)
+        session.commit()
+
+    request.addfinalizer(teardown)
     return n
 
 
-@pytest.fixture
-def rating(session, owner, news):
+@pytest.fixture(scope='function')
+def rating(request, session, owner, news):
     r = Rating(
         user=owner,
         news=news,
@@ -53,4 +74,9 @@ def rating(session, owner, news):
     )
     session.add(r)
     session.commit()
+
+    def teardown():
+        session.delete(r)
+        session.commit()
+    request.addfinalizer(teardown)
     return r

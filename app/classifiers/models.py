@@ -3,7 +3,6 @@ import numpy as np
 from datetime import datetime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.schema import UniqueConstraint
 from sqlalchemy import (
     Column,
     Integer,
@@ -12,7 +11,7 @@ from sqlalchemy import (
     LargeBinary
 )
 from sklearn.svm import SVC
-from ..corpus.models import Corpus
+from ..corpuses.models import Corpus
 from ..users.models import User
 from ..extensions import db
 

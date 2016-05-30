@@ -9,14 +9,11 @@ def test_schedule_list_resource_get(schedule, client):
     assert(all([
         isinstance(d['cycle'], int) and
         isinstance(d['url'], str) and
-        isinstance(d['blacklist'], list) and
-        isinstance(d['brothers'], list) and
         isinstance(d['owner'], int) and
         isinstance(d['name'], str) and
         isinstance(d['enabled'], bool) and
         isinstance(d['state'], str) and
-        (d['max_depth'] is None or isinstance(d['max_depth'], int)) and
-        (d['max_dist'] is None or isinstance(d['max_dist'], int))
+        isinstance(d['options'], dict)
         for d in data
     ]))
 
@@ -24,16 +21,17 @@ def test_schedule_list_resource_get(schedule, client):
 def test_schedule_resource_get(schedule, client):
     res = client.get('/api/schedules/{}'.format(schedule.id))
     data = json.loads(res.data.decode('utf-8'))
+    options = data['options']
     assert(data['id'] == schedule.id)
     assert(data['url'] == schedule.url)
-    assert(data['blacklist'] == schedule.blacklist)
-    assert(data['brothers'] == schedule.brothers)
+    assert(options['ext_blacklist'] == schedule.options['ext_blacklist'])
+    assert(options['url_whitelist'] == schedule.options['url_whitelist'])
     assert(data['enabled'] == schedule.enabled)
     assert(data['state'] == schedule.get_state(celery))
     assert(data['owner'] == schedule.owner.id)
     assert(data['name'] == schedule.name)
-    assert(data['max_depth'] == schedule.max_depth)
-    assert(data['max_dist'] == schedule.max_dist)
+    assert(options['max_dist'] == schedule.options['max_dist'])
+    assert(options['max_visit'] == schedule.options['max_visit'])
 
 
 def test_schedule_resource_post(session, client, url, owner):
@@ -57,31 +55,35 @@ def test_schedule_resource_post(session, client, url, owner):
 
 
 def test_schedule_resource_put(session, schedule, client):
+    options = {
+        'max_visit': 300,
+        'max_dist': 2,
+        'url_whitelist': ['http://www.naver.com', 'http://www.daum.net'],
+    }
     payload = {
         'id': schedule.id,
         'name': 'testnamechanged',
         'enabled': True,
         'url': 'http://testurlchanged.com',
         'cycle': 123,
-        'max_depth': 2,
-        'max_dist': 2,
-        'brothers': ['http://www.naver.com', 'http://www.daum.net']
+        'options': options
     }
-    res = client.put(
+
+    response = client.put(
         '/api/schedules/{}'.format(schedule.id),
         data=json.dumps(payload),
         content_type='application/json'
     )
     updated = Schedule.query.get(schedule.id)
 
-    assert(res.status_code == 200)
+    assert(response.status_code == 200)
     assert(updated.name == payload['name'])
     assert(updated.url == payload['url'])
     assert(updated.enabled)
     assert(updated.cycle == payload['cycle'])
-    assert(updated.max_depth == payload['max_depth'])
-    assert(updated.max_dist == payload['max_dist'])
-    assert(updated.brothers == payload['brothers'])
+    assert(updated.options['max_visit'] == options['max_visit'])
+    assert(updated.options['max_dist'] == options['max_dist'])
+    assert(updated.options['url_whitelist'] == options['url_whitelist'])
 
 
 def test_schedule_resource_delete(session, schedule, client):
