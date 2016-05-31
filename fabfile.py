@@ -5,6 +5,22 @@ from contextlib import contextmanager
 from fabric.api import *
 
 
+# ================
+# HELPER FUNCTIONS
+# ================
+
+def _join(path, *paths):
+    return os.path.join(path, *paths).replace('\\', '/')
+
+
+def _render(string, context):
+    return Template(string).render(context)
+
+
+# =======
+# CONFIGS
+# =======
+
 # source repository
 REPO = 'https://github.com/kuc2477/anchor-backend'
 
@@ -12,13 +28,13 @@ REPO = 'https://github.com/kuc2477/anchor-backend'
 VHOST = 'anchor'
 
 # application paths
-APPS_DIR = '/production'
-APP_DIR = os.path.join(APPS_DIR, VHOST)
+APPS_DIR = '/home/ubuntu/production'
+APP_DIR = _join(APPS_DIR, VHOST)
 APP_MODULE = 'wsgi'
 APP_CALLABLE = 'app'
 
 # supervisor paths
-SUPERVISOR_DIR = '/etc/supervisor/conf.d/'
+SUPERVISOR_DIR = '/etc/supervisor/conf.d'
 
 # nginx paths
 NGINX_DIR = '/etc/nginx/sites-'
@@ -29,36 +45,41 @@ NGINX_ENABLED_DIR = '{}enabled'.format(NGINX_DIR)
 STATIC = 'static'
 
 
-def _render(string, context):
-    return Template(string).render(context)
-
-
 # ===============
 # FABRIC SETTINGS
 # ===============
 
 env.shell = '/bin/bash -l -i -c'
+env.hosts = [
+    'ubuntu@ec2-54-218-75-14.us-west-2.compute.amazonaws.com',
+]
 
 
 # ==========
 # EVIRONMENT
 # ==========
 
+def _install_production_dir():
+    run('mkdir -p {}'.format(APPS_DIR))
+
+
 def _install_pyenv():
     # pyenv dependencies
-    sudo(' '.join([
-        'apt-get install -y make build-essential libssl-dev zlib1g-dev',
-        'libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm',
-        'libncurses5-dev',
-    ]))
-    # pyenv
-    sudo('curl -L ' +
-         'https://raw.githubusercontent.com/yyuu/pyenv-installer/' +
-         'master/bin/pyenv-installer | bash')
-    # install python
-    run('pyenv install 3.5.1')
-    run('pyenv shell 3.5.1')
-    run('pyenv virtualenv anchor')
+    sudo('apt-get update')
+    sudo(
+        'apt-get install -y make build-essential libssl-dev zlib1g-dev ' +
+        'libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm ' +
+        'libncurses5-dev'
+    )
+    if not run('which pyenv'):
+        # pyenv
+        sudo('curl -L ' +
+             'https://raw.githubusercontent.com/yyuu/pyenv-installer/' +
+             'master/bin/pyenv-installer | bash')
+        # install python
+        run('pyenv install 3.5.1')
+        run('pyenv shell 3.5.1')
+        run('pyenv virtualenv anchor')
 
 
 @contextmanager
@@ -77,7 +98,7 @@ def _production_python(after='system'):
 
 @contextmanager
 def _swap_enabled():
-    sudo('/bin/dd if=/dev/zero of=/var/swap.1 bs-1M count=1024')
+    sudo('/bin/dd if=/dev/zero of=/var/swap.1 bs=1M count=1024')
     sudo('/sbin/mkswap /var/swap.1')
     sudo('/sbin/swapon /var/swap.1')
     yield
@@ -91,7 +112,8 @@ def _swap_enabled():
 
 def _clone_repo():
     with cd(APPS_DIR):
-        run('git clone {}'.format(REPO))
+        run('rm -rf {}'.format(VHOST))
+        run('git clone {} {}'.format(REPO, VHOST))
 
 
 def _update_repo():
@@ -105,6 +127,25 @@ def _update_repo():
 # SYSTEM CONFIGURATIONS
 # =====================
 
+def _make_vhost():
+    with open('./templates/conf/nginx.tpl') as f:
+        template = f.read()
+    interpolated = StringIO.StringIO()
+    interpolated.write(_render(template, {
+        'domain': VHOST,
+        'root': APP_DIR,
+        'static': STATIC
+    }))
+
+    put(interpolated, _join(NGINX_AVAILABLE_DIR, VHOST), use_sudo=True)
+    sudo('ln -sf {} {}'.format(
+        _join(NGINX_AVAILABLE_DIR, VHOST),
+        _join(NGINX_ENABLED_DIR, VHOST),
+    ))
+    run('touch {}'.format(_join(APP_DIR, 'access.log')))
+    run('touch {}'.format(_join(APP_DIR, 'error.log')))
+
+
 def _make_supervisor_conf():
     with open('./templates/conf/supervisor.tpl') as f:
         template = f.read()
@@ -116,28 +157,9 @@ def _make_supervisor_conf():
         'callable': APP_CALLABLE
     }))
 
-    sudo('mkdir -p {}', SUPERVISOR_DIR)
-    put(interpolated, '{}.conf'.format(os.path.join(SUPERVISOR_DIR, VHOST)),
+    sudo('mkdir -p {}'.format(SUPERVISOR_DIR))
+    put(interpolated, '{}.conf'.format(_join(SUPERVISOR_DIR, VHOST)),
         use_sudo=True)
-
-
-def _make_vhost():
-    with open('./templates/conf/nginx.tpl') as f:
-        template = f.read()
-    interpolated = StringIO.StringIO()
-    interpolated.write(_render(template, {
-        'domain': VHOST,
-        'root': APP_DIR,
-        'static': STATIC
-    }))
-
-    put(interpolated, os.path.join(NGINX_AVAILABLE_DIR, VHOST), use_sudo=True)
-    sudo('ln -sf {} {}'.format(
-        os.path.join(NGINX_AVAILABLE_DIR, VHOST),
-        os.path.join(NGINX_ENABLED_DIR, VHOST)
-    ))
-    run('touch {}'.format(os.path.join(APP_DIR, 'access.log')))
-    run('touch {}'.format(os.path.join(APP_DIR, 'error.log')))
 
 
 # =======
@@ -171,7 +193,7 @@ def _install_build_dependencies():
 
 def _install_deployment_dependencies():
     with cd(APP_DIR), _system_python(after='system'):
-        run('pip install -r requirements/depl.txt')
+        run('sudo pip install -r requirements/depl.txt')
 
 
 def _install_production_dependencies():
@@ -183,8 +205,12 @@ def _install_production_dependencies():
 # DEPLOYMENT (MAIN)
 # =================
 
-def init_deploy():
-    # clone fresh source code from github
+def init():
+    # install pyenv
+    _install_pyenv()
+
+    # install production dir and clone fresh repo from github
+    _install_production_dir()
     _clone_repo()
 
     # install build / system dependencies and pruduction python dependencies
@@ -207,3 +233,7 @@ def init_deploy():
 def deploy():
     _update_repo()
     _reload_app()
+
+
+def destroy():
+    sudo('rm -rf {}'.format(APPS_DIR))

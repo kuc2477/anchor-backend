@@ -9,13 +9,12 @@ from sqlalchemy_utils.types import JSONType
 from ..news.models import News
 from ..extensions import db
 from ..constants import (
-    DEFAULT_NEWS_SIZE, 
+    DEFAULT_NEWS_SIZE,
     DEFAULT_CORPUS_SIZE,
 )
 
 
 class Corpus(db.Model):
-
     id = Column(Integer, primary_key=True)
     words = Column(JSONType, default=[], nullable=False)
     created = Column(DateTime, default=datetime.now)
@@ -26,13 +25,13 @@ class Corpus(db.Model):
 
     @classmethod
     def from_user(cls, user,
-                  nsize=DEFAULT_NEWS_SIZE, 
+                  nsize=DEFAULT_NEWS_SIZE,
                   csize=DEFAULT_CORPUS_SIZE):
         news_list = [n for s in user.schedules for n in s.news_list][:nsize]
         return cls(news_list, csize)
 
     @classmethod
-    def from_random(cls, nsize=DEFAULT_NEWS_SIZE, csize=DEFAULT_CORPUS_SIZE):
+    def from_all(cls, nsize=DEFAULT_NEWS_SIZE, csize=DEFAULT_CORPUS_SIZE):
         news_list = News.query.all()[:nsize]
         return cls(news_list, csize)
 

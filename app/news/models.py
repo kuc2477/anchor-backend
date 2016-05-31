@@ -25,12 +25,17 @@ class NewsABC(create_news_abc(Schedule)):
         return schema.dump(self).data
 
     @property
-    def current_user_rating(self):
-        return self.get_rating(current_user)
+    def words(self):
+        title_tokens = self.title.split() if self.title else []
+        summary_tokens = self.summary.split() if self.summary else []
+        return title_tokens + summary_tokens
+
+    @property
+    def user_rating(self):
+        return self.get_rating(user=current_user)
 
     def get_rating(self, user=None):
         user = user or current_user
-
         if user.is_anonymous:
             return None
         try:

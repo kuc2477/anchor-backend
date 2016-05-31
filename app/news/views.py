@@ -12,7 +12,7 @@ from .resources import (
     NewsResource,
     NewsListResource,
     LatestListResource,
-    RecomListResource,
+    RecommListResource,
 )
 from .forms import BaseRatingForm
 
@@ -23,7 +23,7 @@ api = Api(bp)
 api.add_resource(NewsResource, '/news/<int:id>')
 api.add_resource(NewsListResource, '/news')
 api.add_resource(LatestListResource, '/news/latest')
-api.add_resource(RecomListResource, '/news/recommendations')
+api.add_resource(RecommListResource, '/news/recomms')
 
 
 @bp.route('/news/<int:id>/ratings', methods=['POST', 'PUT'])

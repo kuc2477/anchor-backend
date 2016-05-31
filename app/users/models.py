@@ -67,9 +67,9 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def get_recommendations(self, fit=False):
+    def get_recomms(self, fit=False):
         from ..corpus.models import Corpus
-        from ..classifiers.models import SVM
+        from ..clsfiers.models import SVM
 
         news_list = [n for s in self.schedules for n in s.news_list]
         corpus = Corpus.query.first() or Corpus.from_user(self)
@@ -77,7 +77,7 @@ class User(UserMixin, db.Model):
         if not corpus.id:
             db.session.add(corpus)
             db.session.commit()
-        
+
         svm = self.svm or SVM(user=self, corpus=corpus)
 
         if not svm.id:

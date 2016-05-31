@@ -11,8 +11,8 @@ from sqlalchemy import (
     LargeBinary
 )
 from sklearn.svm import SVC
-from ..corpuses.models import Corpus
 from ..users.models import User
+from ..corpuses.models import Corpus
 from ..extensions import db
 
 
@@ -29,18 +29,18 @@ class AbstractClassifier(object):
     def corpus(cls):
         return relationship(Corpus, backref=backref(
             cls.corpus_backref_name,
-            cascade='delete, delete-orphan'
+            cascade='delete-orphan, all'
         ))
 
     @declared_attr
     def user_id(cls):
-        return Column(Integer, ForeignKey(User.id), unique=True)
+        return Column(Integer, ForeignKey(User.id))
 
     @declared_attr
     def user(cls):
         return relationship(User, backref=backref(
-            cls.user_backref_name, uselist=False,
-            cascade='delete, delete-orphan'
+            cls.user_backref_name,
+            cascade='delete-orphan, all'
         ))
 
     def __init__(self, user, corpus):
@@ -63,22 +63,6 @@ class AbstractClassifier(object):
     def model(self, classifier):
         self.serialized = pickle.dumps(classifier)
 
-    def label(self, rating):
-        if rating is None:
-            return 0
-        elif rating:
-            return 1
-        else:
-            return -1
-
-    def delabel(self, label):
-        if label == 0:
-            return None
-        elif label > 0:
-            return True
-        else:
-            return False
-
     def fit(self, training_set):
         X = [self.corpus.extract_features(n) for n in training_set]
         y = [self.label(n.get_rating(self.user)) for n in training_set]
@@ -88,17 +72,15 @@ class AbstractClassifier(object):
         self.model = model
         return self.model
 
-    def predict(self, news):
-        return self.predict_bulk([news])
-
-    def predict_bulk(self, news_list):
+    def predict(self, *news):
         if not self.model:
             return None
-        X = np.array([self.corpus.extract_features(n) for n in news_list])
-        return [self.delabel(y) for y in self.model.predict(X)]
+        X = np.array([self.corpus.extract_features(n)for n in news])
+        y = self.model.predict(X)
+        return y
 
 
 class SVM(AbstractClassifier, db.Model):
     model_class = SVC
-    user_backref_name = 'svm'
     corpus_backref_name = 'svms'
+    user_backref_name = 'svms'

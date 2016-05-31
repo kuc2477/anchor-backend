@@ -66,11 +66,11 @@ class LatestListResource(Resource):
         return schema.dump(filtered).data
 
 
-class RecomListResource(Resource):
+class RecommListResource(Resource):
     def get(self):
         if current_user.is_anonymous:
             abort(400)
 
-        recommendations = current_user.get_recommendations()
+        recomms = current_user.get_recomms()
         schema = NewsSchema(many=True, exclude='content')
-        return schema.dump(recommendations).data
+        return schema.dump(recomms).data
