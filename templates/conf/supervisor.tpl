@@ -1,7 +1,6 @@
 [program:{{ domain }}]
 command=uwsgi
   --socket uwsgi.sock
-  --chmod-socket 666
   --processes 1
   --master
   --no-orphans
@@ -9,7 +8,7 @@ command=uwsgi
   --module {{ module }}
   --callable {{ callable }}
 directory={{ root }}
-stdout_logfile={{ root }}/uwsgi.log
+stdout_logfile={{ uwsgi_logfile }}
 autostart=true
 autorestart=true
 redirect-stderr=true

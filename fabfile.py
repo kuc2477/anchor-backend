@@ -13,8 +13,8 @@ def _join(path, *paths):
     return os.path.join(path, *paths).replace('\\', '/')
 
 
-def _render(string, context):
-    return Template(string).render(context)
+def _render(string, context=None):
+    return Template(string).render(context or {})
 
 
 # =======
@@ -32,9 +32,14 @@ APPS_DIR = '/home/ubuntu/production'
 APP_DIR = _join(APPS_DIR, VHOST)
 APP_MODULE = 'wsgi'
 APP_CALLABLE = 'app'
+UWSGI_LOGFILE = _join(APP_DIR, 'uwsgi.log')
 
 # supervisor paths
 SUPERVISOR_DIR = '/etc/supervisor/conf.d'
+SUPERVISORD_CONFIG = '/etc/supervisord.conf'
+SUPERVISORD_LOG_DIR = '/var/log/supervisord'
+SUPERVISORD_SOCKET = '/tmp/supervisor.sock'
+SUPERVISORD_PIDFILE = '/var/run/supervisord.pid'
 
 # nginx paths
 NGINX_DIR = '/etc/nginx/sites-'
@@ -127,7 +132,7 @@ def _update_repo():
 # SYSTEM CONFIGURATIONS
 # =====================
 
-def _make_vhost():
+def _make_nginx_conf():
     with open('./templates/conf/nginx.tpl') as f:
         template = f.read()
     interpolated = StringIO.StringIO()
@@ -147,6 +152,20 @@ def _make_vhost():
 
 
 def _make_supervisor_conf():
+    # install default supervisord configuration file
+    with open('./templates/conf/supervisord.tpl') as f:
+        template = f.read()
+    interpolated = StringIO.StringIO()
+    interpolated.write(_render(template, {
+        'socket': SUPERVISORD_SOCKET,
+        'pidfile': SUPERVISORD_PIDFILE,
+        'logfile': _join(SUPERVISORD_LOG_DIR, 'supervisord.log'),
+        'childlogdir': SUPERVISORD_LOG_DIR,
+    }))
+    sudo('mkdir -p {}'.format(SUPERVISORD_LOG_DIR))
+    put(interpolated, SUPERVISORD_CONFIG, use_sudo=True)
+
+    # install supervisorctl configuration file
     with open('./templates/conf/supervisor.tpl') as f:
         template = f.read()
     interpolated = StringIO.StringIO()
@@ -154,9 +173,10 @@ def _make_supervisor_conf():
         'domain': VHOST,
         'root': APP_DIR,
         'module': APP_MODULE,
-        'callable': APP_CALLABLE
+        'callable': APP_CALLABLE,
+        'uwsgi_logfile': UWSGI_LOGFILE,
     }))
-
+    sudo('touch {}'.format(UWSGI_LOGFILE))
     sudo('mkdir -p {}'.format(SUPERVISOR_DIR))
     put(interpolated, '{}.conf'.format(_join(SUPERVISOR_DIR, VHOST)),
         use_sudo=True)
@@ -165,6 +185,14 @@ def _make_supervisor_conf():
 # =======
 # SERVICE
 # =======
+
+def _start_webserver():
+    sudo('/etc/init.d/nginx start')
+
+
+def _start_supervisord():
+    sudo('supervisord')
+
 
 def _reload_webserver():
     sudo('/etc/init.d/nginx reload')
@@ -219,7 +247,7 @@ def init():
     _install_production_dependencies()
 
     # make vhost and supervisor configurations
-    _make_vhost()
+    _make_nginx_conf()
     _make_supervisor_conf()
 
     # kick off webserver and supervisor
