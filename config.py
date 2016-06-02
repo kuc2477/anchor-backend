@@ -75,4 +75,4 @@ class Test(Base):
 
 
 class Prod(Base):
-    pass
+    PROPAGATE_EXCEPTIONS = True
