@@ -28,7 +28,10 @@ REPO = 'https://github.com/kuc2477/anchor-backend'
 VHOST = 'anchor'
 
 # application paths
-APPS_DIR = '/home/ubuntu/production'
+HOME_DIR = '/home/ubuntu'
+VIRTUALENV = _join(HOME_DIR, '.pyenv/versions/{}'.format(VHOST))
+VIRTUALENV_UWSGI = _join(VIRTUALENV, 'bin/uwsgi')
+APPS_DIR = _join(HOME_DIR, 'production')
 APP_DIR = _join(APPS_DIR, VHOST)
 APP_MODULE = 'wsgi'
 APP_CALLABLE = 'app'
@@ -84,11 +87,11 @@ def _install_pyenv():
         # install python
         run('pyenv install 3.5.1')
         run('pyenv shell 3.5.1')
-        run('pyenv virtualenv anchor')
+        run('pyenv virtualenv {}'.format(VHOST))
 
 
 @contextmanager
-def _system_python(after='anchor'):
+def _system_python(after=VHOST):
     run('pyenv shell system')
     yield
     run('pyenv shell {}'.format(after))
@@ -96,7 +99,7 @@ def _system_python(after='anchor'):
 
 @contextmanager
 def _production_python(after='system'):
-    run('pyenv shell anchor')
+    run('pyenv shell {}'.format(VHOST))
     yield
     run('pyenv shell {}'.format(after))
 
@@ -132,6 +135,14 @@ def _update_repo():
 # SYSTEM CONFIGURATIONS
 # =====================
 
+def _make_secret():
+    with open('./secret.py') as f:
+        secret = f.read()
+    interpolated = StringIO.StringIO()
+    interpolated.write(secret)
+    put(interpolated, _join(APP_DIR, 'secret.py'))
+
+
 def _make_nginx_conf():
     with open('./templates/conf/nginx.tpl') as f:
         template = f.read()
@@ -143,6 +154,7 @@ def _make_nginx_conf():
     }))
 
     put(interpolated, _join(NGINX_AVAILABLE_DIR, VHOST), use_sudo=True)
+    sudo('rm -f {}'.format(_join(NGINX_ENABLED_DIR, 'default')))
     sudo('ln -sf {} {}'.format(
         _join(NGINX_AVAILABLE_DIR, VHOST),
         _join(NGINX_ENABLED_DIR, VHOST),
@@ -170,10 +182,12 @@ def _make_supervisor_conf():
         template = f.read()
     interpolated = StringIO.StringIO()
     interpolated.write(_render(template, {
-        'domain': VHOST,
+        'program': VHOST,
+        'uwsgi': VIRTUALENV_UWSGI,
         'root': APP_DIR,
         'module': APP_MODULE,
         'callable': APP_CALLABLE,
+        'virtualenv': VIRTUALENV,
         'uwsgi_logfile': UWSGI_LOGFILE,
     }))
     sudo('touch {}'.format(UWSGI_LOGFILE))
@@ -225,7 +239,7 @@ def _install_deployment_dependencies():
 
 
 def _install_production_dependencies():
-    with cd(APP_DIR), _production_python(after='anchor'), _swap_enabled():
+    with cd(APP_DIR), _production_python(after=VHOST), _swap_enabled():
             run('pip install -r requirements/prod.txt')
 
 
@@ -247,6 +261,7 @@ def init():
     _install_production_dependencies()
 
     # make vhost and supervisor configurations
+    _make_secret()
     _make_nginx_conf()
     _make_supervisor_conf()
 

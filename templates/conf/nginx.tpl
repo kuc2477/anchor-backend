@@ -1,5 +1,5 @@
 server {
-    listen 80;
+    listen 80 default_server;
     server_name {{ domain }};
     root {{ root }};
 
@@ -7,8 +7,8 @@ server {
     error_log {{ root }}/error.log;
 
     location / {
-        uwsgi_pass unix://{{ root }}/uwsgi.sock;
         include uwsgi_params;
+        uwsgi_pass unix://{{ root }}/uwsgi.sock;
     }
 
     location /static {
