@@ -41,11 +41,8 @@ class NewsListResource(PaginatedResource):
                 .order_by(sql.desc(News.created))
 
     def get_filtered(self, instances):
-        return [
-            n for n in instances if
-            (n.current_user_rating is None or n.current_user_rating) and
-            n.image
-        ]
+        return [n for n in instances if
+                n.image and (n.user_rating is None or n.user_rating)]
 
 
 class LatestListResource(Resource):
@@ -60,7 +57,8 @@ class LatestListResource(Resource):
 
         instances = query.all()
         filtered = [n for n in instances if
-                    n.current_user_rating is None or n.current_user_rating]
+                    n.user_rating is None or
+                    n.user_rating]
 
         schema = NewsSchema(many=True, exclude='content')
         return schema.dump(filtered).data

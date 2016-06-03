@@ -57,6 +57,7 @@ class ScheduleListResource(PaginatedResource):
             name=form.name.data,
             url=form.url.data,
             cycle=form.cycle.data,
+            options=form.options.data,
         )
         db.session.add(schedule)
         db.session.commit()

@@ -1,5 +1,4 @@
 import pickle
-import numpy as np
 from datetime import datetime
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship, backref
@@ -10,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     LargeBinary
 )
+from sklearn.feature_extraction import DictVectorizer
 from sklearn.svm import SVC
 from ..users.models import User
 from ..corpuses.models import Corpus
@@ -20,6 +20,7 @@ class AbstractClassifier(object):
     model_class = None
     corpus_backref_name = None
     user_backref_name = None
+    vectorizer = DictVectorizer()
 
     @declared_attr
     def corpus_id(cls):
@@ -63,10 +64,23 @@ class AbstractClassifier(object):
     def model(self, classifier):
         self.serialized = pickle.dumps(classifier)
 
-    def fit(self, training_set):
-        X = [self.corpus.extract_features(n) for n in training_set]
-        y = [self.label(n.get_rating(self.user)) for n in training_set]
+    def get_X(self, *news):
+        X_dicts = [self.corpus.extract_features(n) for n in news]
+        return self.vectorizer.fit_transform(X_dicts).toarray()
 
+    def get_y(self, *news):
+        return [str(n.get_rating(self.user)) for n in news]
+
+    def deserialize_predictions(self, *predictions):
+        return [eval(p) for p in predictions]
+
+    # =========================
+    # Classifier Main Interface
+    # =========================
+
+    def fit(self, *training_set):
+        X = self.get_X(*training_set)
+        y = self.get_y(*training_set)
         model = self.model or self.model_class()
         model.fit(X, y)
         self.model = model
@@ -75,9 +89,9 @@ class AbstractClassifier(object):
     def predict(self, *news):
         if not self.model:
             return None
-        X = np.array([self.corpus.extract_features(n)for n in news])
+        X = self.get_X(*news)
         y = self.model.predict(X)
-        return y
+        return self.deserialize_predictions(*y)
 
 
 class SVM(AbstractClassifier, db.Model):

@@ -6,7 +6,7 @@ from sqlalchemy import (
     Boolean,
 )
 from sqlalchemy.schema import UniqueConstraint
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declared_attr
 from flask.ext.login import current_user
 from news.models.sqlalchemy import (
@@ -49,10 +49,7 @@ News = create_news(NewsABC, db.Model)
 
 
 class NewsSchema(get_base_schema(News)):
-    title = fields.String()
-    summary = fields.String()
-    image = fields.String()
-    current_user_rating = fields.Boolean(allow_none=True)
+    user_rating = fields.Boolean(allow_none=True)
 
 
 class Rating(db.Model):
@@ -66,7 +63,10 @@ class Rating(db.Model):
 
     @declared_attr
     def user(cls):
-        return relationship(User, backref='ratings')
+        return relationship(User, backref=backref(
+            'ratings',
+            cascade='delete-orphan, all'
+        ))
 
     @declared_attr
     def news_id(cls):
@@ -74,14 +74,14 @@ class Rating(db.Model):
 
     @declared_attr
     def news(cls):
-        return relationship(News, backref='ratings')
+        return relationship(News, backref=backref(
+            'ratings',
+            cascade='delete-orphan, all'
+        ))
 
     def __init__(self, user, news, positive=True):
-        # support both foreign key and model instance
-        isinstance(user, int) and setattr(self, 'user_id', user)
-        not isinstance(user, int) and setattr(self, 'user', user)
-        isinstance(news, int) and setattr(self, 'news_id', news)
-        not isinstance(news, int) and setattr(self, 'news', news)
+        self.user = user
+        self.news = news
         self.positive = positive
 
     id = Column(Integer, primary_key=True)

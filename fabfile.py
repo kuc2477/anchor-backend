@@ -135,7 +135,7 @@ def _update_repo():
 # SYSTEM CONFIGURATIONS
 # =====================
 
-def _make_secret():
+def _upload_secret():
     with open('./secret.py') as f:
         secret = f.read()
     interpolated = StringIO.StringIO()
@@ -261,7 +261,7 @@ def init():
     _install_production_dependencies()
 
     # make vhost and supervisor configurations
-    _make_secret()
+    _upload_secret()
     _make_nginx_conf()
     _make_supervisor_conf()
 
@@ -280,3 +280,7 @@ def deploy():
 
 def destroy():
     sudo('rm -rf {}'.format(APPS_DIR))
+
+
+def upload_secret():
+    _upload_secret()

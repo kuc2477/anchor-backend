@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import datetime
+from sqlalchemy.sql import desc
 from sqlalchemy import (
     Column,
     Integer,
@@ -11,6 +12,7 @@ from ..extensions import db
 from ..constants import (
     DEFAULT_NEWS_SIZE,
     DEFAULT_CORPUS_SIZE,
+    CORPUS_EXPIRATION_TIME,
 )
 
 
@@ -22,6 +24,40 @@ class Corpus(db.Model):
 
     def __init__(self, news_list=None, size=DEFAULT_CORPUS_SIZE):
         self.words = list(self.get_words(news_list or [], size))
+
+    # ===============
+    # Corpus creation
+    # ===============
+
+    @classmethod
+    def from_user_exp(cls, user,
+                      nsize=DEFAULT_NEWS_SIZE,
+                      csize=DEFAULT_CORPUS_SIZE):
+        existing = cls.query.order_by(desc(cls.created)).first()
+        expired = not existing or (datetime.now() - existing.created) > \
+            CORPUS_EXPIRATION_TIME
+
+        if expired:
+            corpus = cls.from_user(user, nsize=nsize, csize=csize)
+            db.session.add(corpus)
+            db.session.commit()
+            return corpus
+        else:
+            return existing
+
+    @classmethod
+    def from_all_exp(cls, nsize=DEFAULT_NEWS_SIZE, csize=DEFAULT_CORPUS_SIZE):
+        existing = cls.query.order_by(desc(cls.created)).first()
+        expired = not existing or (datetime.now() - existing.created) > \
+            CORPUS_EXPIRATION_TIME
+
+        if expired:
+            corpus = cls.from_all(nsize=nsize, csize=csize)
+            db.session.add(corpus)
+            db.session.commit()
+            return corpus
+        else:
+            return existing
 
     @classmethod
     def from_user(cls, user,
@@ -35,6 +71,10 @@ class Corpus(db.Model):
         news_list = News.query.all()[:nsize]
         return cls(news_list, csize)
 
+    # ======================================
+    # Feature extraction / corpus properties
+    # ======================================
+
     @staticmethod
     def get_words(news_list, size):
         words = (w for n in news_list for w in n.words)
@@ -43,7 +83,7 @@ class Corpus(db.Model):
 
     def extract_features(self, news):
         counts = Counter(news.words)
-        return [counts.get(w, 0) for w in self.words]
+        return {w: counts.get(w, 0) for w in self.words}
 
     @property
     def size(self):

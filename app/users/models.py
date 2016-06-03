@@ -68,28 +68,22 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def get_recomms(self, fit=False):
-        from ..corpus.models import Corpus
+        from ..corpuses.models import Corpus
         from ..clsfiers.models import SVM
 
         news_list = [n for s in self.schedules for n in s.news_list]
-        corpus = Corpus.query.first() or Corpus.from_user(self)
-
-        if not corpus.id:
-            db.session.add(corpus)
-            db.session.commit()
-
+        corpus = Corpus.from_all_exp()
         svm = self.svm or SVM(user=self, corpus=corpus)
 
         if not svm.id:
             svm.fit(news_list)
             db.session.add(svm)
             db.session.commit()
-
         elif fit:
             svm.fit(news_list)
             db.session.commit()
 
-        predictions = svm.predict_bulk(news_list)
+        predictions = svm.predict(*news_list)
         return [n for n, y in zip(news_list, predictions) if y]
 
 
