@@ -5,7 +5,6 @@ from sqlalchemy import (
 from news.models.sqlalchemy import (
     create_schedule_abc, create_schedule
 )
-from news.constants import DEFAULT_SCHEDULE_CYCLE
 from ..utils.ma import get_base_schema
 from ..users.models import User
 from ..extensions import (
@@ -14,10 +13,9 @@ from ..extensions import (
 
 
 class ScheduleABC(create_schedule_abc(User)):
-    def __init__(self, name='', owner=None, url='', enabled=False,
-                 cycle=DEFAULT_SCHEDULE_CYCLE):
+    def __init__(self, name='', *args, **kwargs):
         self.name = name
-        super().__init__(owner=owner, url=url, cycle=cycle, enabled=enabled)
+        super().__init__(*args, **kwargs)
 
     def __str__(self):
         return '{}\'s schedule {} {}'.format(
