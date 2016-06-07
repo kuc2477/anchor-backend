@@ -73,7 +73,7 @@ class User(UserMixin, db.Model):
 
         news_list = [n for s in self.schedules for n in s.news_list]
         corpus = Corpus.from_all_exp()
-        svm = self.svm or SVM(user=self, corpus=corpus)
+        svm = self.svms.first() or SVM(user=self, corpus=corpus)
 
         if not svm.id:
             svm.fit(news_list)

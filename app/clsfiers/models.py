@@ -29,8 +29,8 @@ class AbstractClassifier(object):
     @declared_attr
     def corpus(cls):
         return relationship(Corpus, backref=backref(
-            cls.corpus_backref_name,
-            cascade='delete-orphan, all'
+            cls.corpus_backref_name, lazy='dynamic',
+            cascade='delete-orphan, all',
         ))
 
     @declared_attr
@@ -40,8 +40,8 @@ class AbstractClassifier(object):
     @declared_attr
     def user(cls):
         return relationship(User, backref=backref(
-            cls.user_backref_name,
-            cascade='delete-orphan, all'
+            cls.user_backref_name, lazy='dynamic',
+            cascade='delete-orphan, all',
         ))
 
     def __init__(self, user, corpus):

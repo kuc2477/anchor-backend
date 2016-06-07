@@ -12,12 +12,19 @@ from news.utils.logging import logger
 from news.backends.sqlalchemy import SQLAlchemyBackend
 from news.persister import Persister
 from news.scheduler import Scheduler
+from news.contrib.logging.middlewares import (
+    logging_dispatch_middleware,
+    logging_fetch_middleware,
+)
 from autobahn.asyncio.wamp import ApplicationSession
 from asyncio import coroutine
 from .constants import (
-    REDIS_COVER_FINISHED_CHANNEL,
     REDIS_COVER_START_CHANNEL,
-    TOPIC_COVER_STARTED,
+    REDIS_COVER_SUCCESS_CHANNEL,
+    REDIS_COVER_ERROR_CHANNEL,
+    COVER_START,
+    COVER_SUCCESS,
+    COVER_ERROR,
 )
 
 
@@ -55,42 +62,48 @@ admin = Admin()
 
 # notifier component
 class NotifierComponent(ApplicationSession):
-    def notify(self, topic, *args):
+    def notify_schedule_state(self, topic, schedule):
+        if not schedule:
+            logger.warning('[Notifier] Invalid schedule passed to notifier')
+            return
+        self._notify(topic, schedule.id, schedule.state)
+
+    def _notify(self, topic, *args):
         logger.info(
             '[Notifier] Push message on {} to the router'
             .format(topic)
         )
         self.publish(topic, *args)
 
-    def notify_schedule_state(self, topic, schedule):
-        if not schedule:
-            logger.warning('[Notifier] Invalid schedule passed to notifier')
-            return
-        self.notify(topic, schedule.id, schedule.state)
-
     def _get_schedule(self, message):
         from .schedules.models import Schedule
         id = int(message['data'])
         return Schedule.query.get(id)
 
-    def _on_cover_started(self, message):
+    def _on_cover_start(self, message):
         schedule = self._get_schedule(message)
-        self.notify_schedule_state(TOPIC_COVER_STARTED, schedule)
+        self.notify_schedule_state(COVER_START, schedule)
 
-    def _on_cover_finished(self, message):
+    def _on_cover_success(self, message):
         schedule = self._get_schedule(message)
-        self.notify_schedule_state(TOPIC_COVER_STARTED, schedule)
+        self.notify_schedule_state(COVER_SUCCESS, schedule)
+
+    def _on_cover_error(self, message):
+        schedule = self._get_schedule(message)
+        self.notify_schedule_state(COVER_ERROR, schedule)
 
     @coroutine
     def onJoin(self, details):
         self.pubsub = redis.pubsub()
         self.pubsub.subscribe(**{
-            REDIS_COVER_START_CHANNEL: self._on_cover_started,
-            REDIS_COVER_FINISHED_CHANNEL: self._on_cover_finished
+            REDIS_COVER_START_CHANNEL: self._on_cover_start,
+            REDIS_COVER_SUCCESS_CHANNEL: self._on_cover_success,
+            REDIS_COVER_ERROR_CHANNEL: self._on_cover_error,
         })
         while True:
             self.pubsub.get_message()
             time.sleep(0.1)
+
 
 # notifier component alias
 notifier = NotifierComponent
@@ -138,17 +151,27 @@ def configure_scheduler(app, user_model, schedule_model, news_model):
         bind=db.session
     )
 
-    # push notification on cover start and finish
+    # middlwares
+    dispatch_middlewares = [logging_dispatch_middleware]
+    fetch_middlewares = [logging_fetch_middleware]
+
+    # callbacks
     def on_cover_start(schedule):
         redis.publish(REDIS_COVER_START_CHANNEL, str(schedule.id))
 
-    def on_cover_finish(schedule, news_list):
-        redis.publish(REDIS_COVER_FINISHED_CHANNEL, str(schedule.id))
+    def on_cover_success(schedule, news_list):
+        redis.publish(REDIS_COVER_SUCCESS_CHANNEL, str(schedule.id))
+
+    def on_cover_error(schedule, exc):
+        redis.publish(REDIS_COVER_ERROR_CHANNEL, str(schedule.id))
 
     scheduler.configure(
         backend=backend, celery=celery, persister=persister,
+        dispatch_middlewares=dispatch_middlewares,
+        fetch_middlewares=fetch_middlewares,
         on_cover_start=on_cover_start,
-        on_cover_finish=on_cover_finish,
+        on_cover_success=on_cover_success,
+        on_cover_error=on_cover_error,
     )
 
 
