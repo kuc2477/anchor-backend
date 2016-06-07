@@ -32,6 +32,7 @@ class ScheduleResource(Resource):
         form.validate()
 
         schedule = Schedule.query.get_or_404(form.id.data)
+        schedule.type = form.type.data
         schedule.enabled = form.enabled.data
         schedule.name = form.name.data
         schedule.url = form.url.data
@@ -55,6 +56,7 @@ class ScheduleListResource(PaginatedResource):
         schedule = Schedule(
             owner=form.owner.data or current_user,
             name=form.name.data,
+            type=form.type.data,
             url=form.url.data,
             cycle=form.cycle.data,
             options=form.options.data,
