@@ -57,10 +57,18 @@ STATIC = 'static'
 # FABRIC SETTINGS
 # ===============
 
-env.shell = '/bin/bash -l -i -c'
-env.hosts = [
+REDIS_SERVERS = [
     'ubuntu@ec2-54-218-75-14.us-west-2.compute.amazonaws.com',
 ]
+APP_SERVERS = [
+    'ubuntu@ec2-54-218-75-14.us-west-2.compute.amazonaws.com',
+]
+
+env.shell = '/bin/bash -l -i -c'
+env.roledefs = {
+    'app': {'hosts':  APP_SERVERS},
+    'redis': {'hosts': REDIS_SERVERS},
+}
 
 
 # ==========
@@ -243,6 +251,10 @@ def _install_production_dependencies():
             run('pip install -r requirements/prod.txt')
 
 
+def _install_extensions():
+    sudo('apt-get install redis-server')
+
+
 # =================
 # DEPLOYMENT (MAIN)
 # =================
@@ -259,6 +271,7 @@ def init():
     _install_build_dependencies()
     _install_deployment_dependencies()
     _install_production_dependencies()
+    _install_extensions()
 
     # make vhost and supervisor configurations
     _upload_secret()
