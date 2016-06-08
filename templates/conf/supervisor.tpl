@@ -1,4 +1,4 @@
-[program:{{ program }}]
+[program:{{ vhost }}]
 command={{ uwsgi }}
   --chdir {{ root }}
   --socket uwsgi.sock
@@ -11,8 +11,53 @@ command={{ uwsgi }}
   --callable {{ callable }}
   --virtualenv {{ virtualenv }}
 directory={{ root }}
-stdout_logfile={{ uwsgi_logfile }}
 autostart=true
 autorestart=true
 redirect-stderr=true
+stdout_logfile={{ uwsgi_logfile }}
+stopsignal=QUIT
+
+[program:{{ redis }}]
+command={{ runredis }}
+directory={{ root }}
+autostart=true
+autorestart=true
+redirect-stderr=true
+stdout_logfile={{ redis_logfile }}
+stopsignal=QUIT
+
+[program:{{ celery }}]
+command={{ runcelery }}
+directory={{ root }}
+autostart=true
+autorestart=true
+redirect-stderr=true
+stdout_logfile={{ celery_logfile }}
+stopsignal=QUIT
+
+[program:{{ router }}]
+command={{ runrouter }}
+directory={{ root }}
+autostart=true
+autorestart=true
+redirect-stderr=true
+stdout_logfile={{ router_logfile }}
+stopsignal=QUIT
+
+[program:{{ scheduler }}]
+command={{ runscheduler }}
+directory={{ root }}
+autostart=true
+autorestart=true
+redirect-stderr=true
+stdout_logfile={{ scheduler_logfile }}
+stopsignal=QUIT
+
+[program:{{ notifier }}]
+command={{ runnotifier }}
+directory={{ root }}
+autostart=true
+autorestart=true
+redirect-stderr=true
+stdout_logfile={{ notifier_logfile }}
 stopsignal=QUIT

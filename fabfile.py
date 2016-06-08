@@ -1,3 +1,4 @@
+import copy
 import StringIO
 import os.path
 from jinja2 import Template
@@ -16,6 +17,12 @@ def _join(path, *paths):
 def _render(string, context=None):
     return Template(string).render(context or {})
 
+def _mergedicts(base, *extras):
+    merged = copy.deepcopy(base)
+    for e in extras:
+        merged.update(extra)
+    return merged
+
 
 # =======
 # CONFIGS
@@ -26,6 +33,11 @@ REPO = 'https://github.com/kuc2477/anchor-backend'
 
 # vhost
 VHOST = 'anchor'
+REDIS = 'redis'
+ROUTER = 'router'
+SCHEDULER = 'scheduler'
+NOTIFIER = 'notifier'
+CELERY = 'celery'
 
 # application paths
 HOME_DIR = '/home/ubuntu'
@@ -49,6 +61,13 @@ NGINX_DIR = '/etc/nginx/sites-'
 NGINX_AVAILABLE_DIR = '{}available'.format(NGINX_DIR)
 NGINX_ENABLED_DIR = '{}enabled'.format(NGINX_DIR)
 
+# extension paths
+REDIS_LOGFILE = _join(APP_DIR, 'redis.log')
+CELERY_LOGFILE = _join(APP_DIR, 'celery.log')
+ROUTER_LOGFILE = _join(APP_DIR, 'router.log')
+SCHEDULER_LOGFILE = _join(APP_DIR, 'scheduler.log')
+NOTIFIER_LOGFILE = _join(APP_DIR, 'notifier.log')
+
 # static paths
 STATIC = 'static'
 
@@ -57,17 +76,24 @@ STATIC = 'static'
 # FABRIC SETTINGS
 # ===============
 
-REDIS_SERVERS = [
-    'ubuntu@ec2-54-218-75-14.us-west-2.compute.amazonaws.com',
-]
-APP_SERVERS = [
-    'ubuntu@ec2-54-218-75-14.us-west-2.compute.amazonaws.com',
-]
+EC2_INSTANCES = ['ubuntu@ec2-54-218-75-14.us-west-2.compute.amazonaws.com']
+EC2 = EC2_INSTANCES[0]
+
+APP_SERVERS = [EC2]
+REDIS_SERVER = EC2
+WORKER_SERVERS = [EC2]
+SCHEDULER_SERVER = EC2
+NOTIFIER_SERVER = EC2
+CROSSBAR_ROUTER = EC2
 
 env.shell = '/bin/bash -l -i -c'
 env.roledefs = {
-    'app': {'hosts':  APP_SERVERS},
-    'redis': {'hosts': REDIS_SERVERS},
+    'app': APP_SERVERS,
+    'redis': [REDIS_SERVER],
+    'worker': WORKER_SERVERS,
+    'scheduler': [SCHEDULER_SERVER],
+    'notifier': [NOTIFIER_SERVER],
+    'router': [CROSSBAR_ROUTER],
 }
 
 
@@ -188,41 +214,89 @@ def _make_supervisor_conf():
     # install supervisorctl configuration file
     with open('./templates/conf/supervisor.tpl') as f:
         template = f.read()
-    interpolated = StringIO.StringIO()
-    interpolated.write(_render(template, {
-        'program': VHOST,
-        'uwsgi': VIRTUALENV_UWSGI,
+
+    # template contexts
+    base_context = {
         'root': APP_DIR,
+    }
+    app_context = {
+        'vhost': VHOST,
+        'uwsgi': VIRTUALENV_UWSGI,
         'module': APP_MODULE,
         'callable': APP_CALLABLE,
         'virtualenv': VIRTUALENV,
         'uwsgi_logfile': UWSGI_LOGFILE,
-    }))
+    }
+    redis_context = {
+        'redis': REDIS,
+        'runredis': 'python manage.py runredis',
+        'redis_logfile': REDIS_LOGFILE,
+    }
+    celery_context = {
+        'celery': CELERY,
+        'runcelery': 'python manage.py runcelery',
+        'celery_logfile': CELERY_LOGFILE,
+    }
+    router_context = {
+        'router': ROUTER,
+        'runrouter': 'crossbar start',
+        'router_logfile': ROUTER_LOGFILE
+    }
+    scheduler_context = {
+        'scheduler': SCHEDULER,
+        'runscheduler': 'python manage.py runscheduler',
+        'scheduler_logfile': SCHEDULER_LOGFILE,
+    }
+    notifier_context = {
+        'notifier': NOTIFIER,
+        'runnotifier': 'python manage.py runnotifier',
+        'notifier_logfile': NOTIFIER_LOGFILE,
+    }
+
+    context = _mergedicts(
+        base_context, app_context, redis_context, celery_context,
+        router_context, scheduler_context, notifier_context,
+    )
+
+    interpolated = StringIO.StringIO()
+    interpolated.write(_render(template, context))
     sudo('touch {}'.format(UWSGI_LOGFILE))
     sudo('mkdir -p {}'.format(SUPERVISOR_DIR))
     put(interpolated, '{}.conf'.format(_join(SUPERVISOR_DIR, VHOST)),
         use_sudo=True)
 
 
-# =======
-# SERVICE
-# =======
+# ===================
+# SERVICE (WEBSERVER)
+# ===================
 
 def _start_webserver():
     sudo('/etc/init.d/nginx start')
-
-
-def _start_supervisord():
-    sudo('supervisord')
 
 
 def _reload_webserver():
     sudo('/etc/init.d/nginx reload')
 
 
+def _stop_webserver():
+    sudo('/etc/init.d/nginx stop')
+
+
+# =====================
+# SERVICE (SUPERVISORD)
+# =====================
+
+def _start_supervisord():
+    sudo('supervisord')
+
+
 def _reload_supervisor():
     sudo('supervisorctl update')
 
+
+# =============
+# SERVICE (APP)
+# =============
 
 def _start_app():
     sudo('supervisorctl start {}'.format(VHOST))
@@ -230,6 +304,90 @@ def _start_app():
 
 def _reload_app():
     sudo('supervisorctl restart {}'.format(VHOST))
+
+
+def _stop_app():
+    sudo('supervisorctl stop {}'.format(VHOST))
+
+
+# ===============
+# SERVICE (REDIS)
+# ===============
+
+def _start_redis():
+    sudo('supervisorctl start {}'.format(REDIS))
+
+
+def _reload_redis():
+    sudo('supervisorctl restart {}'.format(REDIS))
+
+
+def _stop_redis():
+    sudo('supervisorctl stop {}'.format(REDIS))
+
+
+# ================
+# SERVICE (CELERY)
+# ================
+
+def _start_worker():
+    sudo('supervisorctl start {}'.format(CELERY))
+
+
+def _reload_worker():
+    sudo('supervisorctl restart {}'.format(CELERY))
+
+
+def _stop_worker():
+    sudo('supervisorctl stop {}'.format(CELERY))
+
+
+# ================
+# SERVICE (ROUTER)
+# ================
+
+def _start_router():
+    sudo('supervisorctl start {}'.format(ROUTER))
+
+
+def _reload_router():
+    sudo('supervisorctl restart {}'.format(ROUTER))
+
+
+def _stop_router():
+    sudo('supervisorctl stop {}'.format(ROUTER))
+
+
+# ===================
+# SERVICE (SCHEDULER)
+# ===================
+
+def _start_scheduler():
+    sudo('supervisorctl start {}'.format(SCHEDULER))
+
+
+def _reload_scheduler():
+    sudo('supervisorctl restart {}'.format(SCHEDULER))
+
+
+def _stop_scheduler():
+    sudo('supervisorctl stop {}'.format(SCHEDULER))
+
+
+# ==================
+# SERVICE (NOTIFIER)
+# ==================
+
+def _start_notifier():
+    sudo('supervisorctl start {}'.format(NOTIFIER))
+
+
+def _reload_notifier():
+    sudo('supervisorctl restart {}'.format(NOTIFIER))
+
+
+def _stop_notifier():
+    sudo('supervisorctl stop {}'.format(NOTIFIER))
 
 
 # ============
@@ -259,7 +417,8 @@ def _install_extensions():
 # DEPLOYMENT (MAIN)
 # =================
 
-def init():
+@roles('app', 'redis', 'worker', 'router', 'scheduler', 'notifier')
+def install():
     # install pyenv
     _install_pyenv()
 
@@ -278,22 +437,53 @@ def init():
     _make_nginx_conf()
     _make_supervisor_conf()
 
-    # kick off webserver and supervisor
+
+def destroy():
+    sudo('rm -rf {}'.format(APPS_DIR))
+    _stop_webserver()
+    _stop_app()
+
+
+@roles('app')
+def init():
+    install()
+    # kick off webserver, supervisord and app server
     _reload_webserver()
     _reload_supervisor()
-
-    # start app server
     _start_app()
 
 
+@roles('app')
 def deploy():
     _update_repo()
     _reload_app()
 
 
-def destroy():
-    sudo('rm -rf {}'.format(APPS_DIR))
-
-
+@roles('app')
 def upload_secret():
     _upload_secret()
+
+
+@roles('redis')
+def run_redis():
+    _reload_redis()
+
+
+@roles('worker')
+def run_workers():
+    _reload_celery()
+
+
+@roles('scheduler')
+def run_scheduler():
+    _reload_scheduler()
+
+
+@roles('notifier')
+def run_notifier():
+    _reload_notifier()
+
+
+@roles('router')
+def run_router():
+    _reload_router()
