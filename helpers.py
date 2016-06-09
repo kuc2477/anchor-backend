@@ -5,8 +5,9 @@ from news.cover import Cover
 from news.reporters.url import URLReporter
 from news.reporters.feed import AtomReporter, RSSReporter
 from news.contrib.logging.middlewares import (
-    logging_dispatch_middleware,
-    logging_fetch_middleware,
+    request_log_middleware,
+    response_log_middleware,
+    report_log_middleware,
 )
 
 
@@ -15,6 +16,7 @@ backend = scheduler.backend
 cover = Cover(schedule, backend)
 cover.prepare(
     reporter_class=URLReporter,
-    dispatch_middlewares=[logging_dispatch_middleware],
-    fetch_middlewares=[logging_fetch_middleware],
+    request_middlewares=[request_log_middleware],
+    response_middlewares=[response_log_middleware],
+    report_middlewares=[report_log_middleware],
 )
