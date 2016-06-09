@@ -13,8 +13,9 @@ from news.backends.sqlalchemy import SQLAlchemyBackend
 from news.persister import Persister
 from news.scheduler import Scheduler
 from news.contrib.logging.middlewares import (
-    logging_dispatch_middleware,
-    logging_fetch_middleware,
+    request_log_middleware,
+    response_log_middleware,
+    report_log_middleware,
 )
 from autobahn.asyncio.wamp import ApplicationSession
 from asyncio import coroutine
@@ -152,8 +153,9 @@ def configure_scheduler(app, user_model, schedule_model, news_model):
     )
 
     # middlwares
-    dispatch_middlewares = [logging_dispatch_middleware]
-    fetch_middlewares = [logging_fetch_middleware]
+    request_middlewares = [request_log_middleware]
+    response_middlewares = [response_log_middleware]
+    report_middlewares = [report_log_middleware]
 
     # callbacks
     def on_cover_start(schedule):
@@ -167,8 +169,9 @@ def configure_scheduler(app, user_model, schedule_model, news_model):
 
     scheduler.configure(
         backend=backend, celery=celery, persister=persister,
-        dispatch_middlewares=dispatch_middlewares,
-        fetch_middlewares=fetch_middlewares,
+        request_middlewares=request_middlewares,
+        response_middlewares=response_middlewares,
+        report_middlewares=report_middlewares,
         on_cover_start=on_cover_start,
         on_cover_success=on_cover_success,
         on_cover_error=on_cover_error,

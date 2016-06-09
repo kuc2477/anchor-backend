@@ -17,10 +17,11 @@ def _join(path, *paths):
 def _render(string, context=None):
     return Template(string).render(context or {})
 
+
 def _mergedicts(base, *extras):
     merged = copy.deepcopy(base)
     for e in extras:
-        merged.update(extra)
+        merged.update(e)
     return merged
 
 
@@ -43,6 +44,8 @@ CELERY = 'celery'
 HOME_DIR = '/home/ubuntu'
 VIRTUALENV = _join(HOME_DIR, '.pyenv/versions/{}'.format(VHOST))
 VIRTUALENV_UWSGI = _join(VIRTUALENV, 'bin/uwsgi')
+VIRTUALENV_PYTHON = _join(VIRTUALENV, 'bin/python')
+VIRTUALENV_CROSSBAR = _join(VIRTUALENV, 'bin/crossbar')
 APPS_DIR = _join(HOME_DIR, 'production')
 APP_DIR = _join(APPS_DIR, VHOST)
 APP_MODULE = 'wsgi'
@@ -211,14 +214,8 @@ def _make_supervisor_conf():
     sudo('mkdir -p {}'.format(SUPERVISORD_LOG_DIR))
     put(interpolated, SUPERVISORD_CONFIG, use_sudo=True)
 
-    # install supervisorctl configuration file
-    with open('./templates/conf/supervisor.tpl') as f:
-        template = f.read()
-
-    # template contexts
-    base_context = {
-        'root': APP_DIR,
-    }
+    # template contexts for supervisorctl configuration file
+    base_context = {'root': APP_DIR}
     app_context = {
         'vhost': VHOST,
         'uwsgi': VIRTUALENV_UWSGI,
@@ -229,41 +226,50 @@ def _make_supervisor_conf():
     }
     redis_context = {
         'redis': REDIS,
-        'runredis': 'python manage.py runredis',
+        'runredis': '{} manage.py runredis'.format(VIRTUALENV_PYTHON),
         'redis_logfile': REDIS_LOGFILE,
     }
     celery_context = {
         'celery': CELERY,
-        'runcelery': 'python manage.py runcelery',
+        'runcelery': '{} manage.py runcelery'.format(VIRTUALENV_PYTHON),
         'celery_logfile': CELERY_LOGFILE,
     }
     router_context = {
         'router': ROUTER,
-        'runrouter': 'crossbar start',
+        'runrouter': '{} start'.format(VIRTUALENV_CROSSBAR),
         'router_logfile': ROUTER_LOGFILE
     }
     scheduler_context = {
         'scheduler': SCHEDULER,
-        'runscheduler': 'python manage.py runscheduler',
+        'runscheduler': '{} manage.py runscheduler'.format(VIRTUALENV_PYTHON),
         'scheduler_logfile': SCHEDULER_LOGFILE,
     }
     notifier_context = {
         'notifier': NOTIFIER,
-        'runnotifier': 'python manage.py runnotifier',
+        'runnotifier': '{} manage.py runnotifier'.format(VIRTUALENV_PYTHON),
         'notifier_logfile': NOTIFIER_LOGFILE,
     }
 
+    # install supervisorctl configuration file
     context = _mergedicts(
         base_context, app_context, redis_context, celery_context,
         router_context, scheduler_context, notifier_context,
     )
-
+    with open('./templates/conf/supervisor.tpl') as f:
+        template = f.read()
     interpolated = StringIO.StringIO()
     interpolated.write(_render(template, context))
-    sudo('touch {}'.format(UWSGI_LOGFILE))
-    sudo('mkdir -p {}'.format(SUPERVISOR_DIR))
     put(interpolated, '{}.conf'.format(_join(SUPERVISOR_DIR, VHOST)),
         use_sudo=True)
+
+    # create empty logfiles
+    sudo('touch {}'.format(UWSGI_LOGFILE))
+    sudo('touch {}'.format(REDIS_LOGFILE))
+    sudo('touch {}'.format(CELERY_LOGFILE))
+    sudo('touch {}'.format(ROUTER_LOGFILE))
+    sudo('touch {}'.format(SCHEDULER_LOGFILE))
+    sudo('touch {}'.format(NOTIFIER_LOGFILE))
+    sudo('mkdir -p {}'.format(SUPERVISOR_DIR))
 
 
 # ===================
@@ -442,6 +448,11 @@ def destroy():
     sudo('rm -rf {}'.format(APPS_DIR))
     _stop_webserver()
     _stop_app()
+    _stop_redis()
+    _stop_worker()
+    _stop_router()
+    _stop_scheduler()
+    _stop_notifier()
 
 
 @roles('app')
@@ -471,7 +482,7 @@ def run_redis():
 
 @roles('worker')
 def run_workers():
-    _reload_celery()
+    _reload_worker()
 
 
 @roles('scheduler')
