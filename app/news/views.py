@@ -41,7 +41,7 @@ def rate_news(id):
 
     # find existing rating or create new one otherwise
     rating = Rating.query.filter_by(news_id=news.id, user_id=user.id).first() \
-        or Rating(user=user, news=news.id, positive=positive)
+        or Rating(user=user, news=news, positive=positive)
 
     # save the rating and return serialized updated news
     if not rating.id:
