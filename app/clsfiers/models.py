@@ -31,6 +31,7 @@ class AbstractClassifier(object):
         return relationship(Corpus, backref=backref(
             cls.corpus_backref_name, lazy='dynamic',
             cascade='delete-orphan, all',
+            cascade_backrefs=False,
         ))
 
     @declared_attr
@@ -42,6 +43,7 @@ class AbstractClassifier(object):
         return relationship(User, backref=backref(
             cls.user_backref_name, lazy='dynamic',
             cascade='delete-orphan, all',
+            cascade_backrefs=False,
         ))
 
     def __init__(self, user, corpus):
@@ -69,7 +71,7 @@ class AbstractClassifier(object):
         return self.vectorizer.fit_transform(X_dicts).toarray()
 
     def get_y(self, news_list):
-        return [str(n.get_rating(self.user)) for n in news_list]
+        return [str(n.get_rating(user=self.user)) for n in news_list]
 
     def deserialize_predictions(self, predictions):
         return [eval(p) for p in predictions]
