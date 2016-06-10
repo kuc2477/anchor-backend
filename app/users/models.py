@@ -83,7 +83,7 @@ class User(UserMixin, db.Model):
             svm.fit(news_list)
             db.session.commit()
 
-        predictions = svm.predict(*news_list)
+        predictions = svm.predict(news_list)
         return [n for n, y in zip(news_list, predictions) if y]
 
 
