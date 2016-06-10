@@ -35,7 +35,7 @@ class Corpus(db.Model):
                       csize=DEFAULT_CORPUS_SIZE):
         existing = cls.query.order_by(desc(cls.created)).first()
         expired = not existing or (datetime.now() - existing.created) > \
-            CORPUS_EXPIRATION_TIME
+            timedelta(seconds=CORPUS_EXPIRATION_TIME)
 
         if expired:
             corpus = cls.from_user(user, nsize=nsize, csize=csize)
@@ -49,7 +49,7 @@ class Corpus(db.Model):
     def from_all_exp(cls, nsize=DEFAULT_NEWS_SIZE, csize=DEFAULT_CORPUS_SIZE):
         existing = cls.query.order_by(desc(cls.created)).first()
         expired = not existing or (datetime.now() - existing.created) > \
-            timedelta(CORPUS_EXPIRATION_TIME)
+            timedelta(seconds=CORPUS_EXPIRATION_TIME)
 
         if expired:
             corpus = cls.from_all(nsize=nsize, csize=csize)
