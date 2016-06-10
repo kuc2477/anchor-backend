@@ -444,6 +444,14 @@ def install():
     _make_supervisor_conf()
 
 
+def update_conf():
+    _upload_secret()
+    _make_nginx_conf()
+    _make_supervisor_conf()
+    _reload_webserver()
+    _reload_supervisor()
+
+
 def destroy():
     sudo('rm -rf {}'.format(APPS_DIR))
     _stop_webserver()
@@ -453,6 +461,11 @@ def destroy():
     _stop_router()
     _stop_scheduler()
     _stop_notifier()
+
+
+# ==========
+# App Server
+# ==========
 
 
 @roles('app')
@@ -474,6 +487,10 @@ def deploy():
 def upload_secret():
     _upload_secret()
 
+
+# ====================
+# Extension Components
+# ====================
 
 @roles('redis')
 def run_redis():
