@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import subprocess
+from datetime import datetime
 from getpass import getpass
 from autobahn.asyncio.wamp import ApplicationRunner
 from flask.ext.script import Manager, Command
@@ -33,7 +34,8 @@ class CreateSuperUser(Command):
         with app.app_context():
             user = User(
                 firstname=firstname, lastname=lastname,
-                email=email, password=password
+                email=email, password=password, confirmed=True,
+                confirmed_on=datetime.now()
             )
             db.session.add(user)
             db.session.commit()

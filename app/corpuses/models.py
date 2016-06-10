@@ -71,9 +71,9 @@ class Corpus(db.Model):
         news_list = News.query.all()[:nsize]
         return cls(news_list, csize)
 
-    # ======================================
-    # Feature extraction / corpus properties
-    # ======================================
+    # ==================
+    # Feature extraction
+    # ==================
 
     @staticmethod
     def get_words(news_list, size):
@@ -84,6 +84,10 @@ class Corpus(db.Model):
     def extract_features(self, news):
         counts = Counter(news.words)
         return {w: counts.get(w, 0) for w in self.words}
+
+    # =================
+    # Corpus properties
+    # =================
 
     @property
     def size(self):
