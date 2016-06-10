@@ -64,34 +64,34 @@ class AbstractClassifier(object):
     def model(self, classifier):
         self.serialized = pickle.dumps(classifier)
 
-    def get_X(self, *news):
-        X_dicts = [self.corpus.extract_features(n) for n in news]
+    def get_X(self, news_list):
+        X_dicts = [self.corpus.extract_features(n) for n in news_list]
         return self.vectorizer.fit_transform(X_dicts).toarray()
 
-    def get_y(self, *news):
-        return [str(n.get_rating(self.user)) for n in news]
+    def get_y(self, news_list):
+        return [str(n.get_rating(self.user)) for n in news_list]
 
-    def deserialize_predictions(self, *predictions):
+    def deserialize_predictions(self, predictions):
         return [eval(p) for p in predictions]
 
     # =========================
     # Classifier Main Interface
     # =========================
 
-    def fit(self, *training_set):
-        X = self.get_X(*training_set)
-        y = self.get_y(*training_set)
+    def fit(self, training_set):
+        X = self.get_X(training_set)
+        y = self.get_y(training_set)
         model = self.model or self.model_class()
         model.fit(X, y)
         self.model = model
         return self.model
 
-    def predict(self, *news):
+    def predict(self, news_list):
         if not self.model:
             return None
-        X = self.get_X(*news)
+        X = self.get_X(news_list)
         y = self.model.predict(X)
-        return self.deserialize_predictions(*y)
+        return self.deserialize_predictions(y)
 
 
 class SVM(AbstractClassifier, db.Model):
