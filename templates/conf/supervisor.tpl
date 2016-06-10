@@ -10,6 +10,7 @@ command={{ uwsgi }}
   --module {{ module }}
   --callable {{ callable }}
   --virtualenv {{ virtualenv }}
+  --logto {{ uwsgi_logfile }}
 directory={{ root }}
 autostart=true
 autorestart=true

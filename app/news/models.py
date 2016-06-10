@@ -51,6 +51,9 @@ News = create_news(NewsABC, db.Model)
 class NewsSchema(get_base_schema(News)):
     user_rating = fields.Boolean(allow_none=True)
 
+    class Meta:
+        exclude = ('content',)
+
 
 class Rating(db.Model):
     @declared_attr
