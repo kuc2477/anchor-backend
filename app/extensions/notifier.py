@@ -3,7 +3,7 @@ from autobahn.asyncio.wamp import ApplicationSession
 from asyncio import coroutine
 from news.utils.logging import logger
 from .redis import redis
-from .constants import (
+from ..constants import (
     REDIS_COVER_START_CHANNEL,
     REDIS_COVER_SUCCESS_CHANNEL,
     REDIS_COVER_ERROR_CHANNEL,

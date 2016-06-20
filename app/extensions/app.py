@@ -52,7 +52,7 @@ def configure_admin(app):
     from ..schedules.models import Schedule
     from ..news.models import News, Rating
     from ..corpuses.models import Corpus
-    from ..clsfiers.models import SVM
+    from ..classifiers.models import SVM
 
     admin.init_app(app)
     admin.add_views(

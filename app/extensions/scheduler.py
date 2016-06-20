@@ -9,7 +9,7 @@ from .app import db
 from .celery import celery
 from .redis import redis
 from .persister import persister
-from .constants import (
+from ..constants import (
     REDIS_COVER_START_CHANNEL,
     REDIS_COVER_SUCCESS_CHANNEL,
     REDIS_COVER_ERROR_CHANNEL,

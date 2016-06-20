@@ -69,7 +69,7 @@ class User(UserMixin, db.Model):
 
     def get_recomms(self, fit=False):
         from ..corpuses.models import Corpus
-        from ..clsfiers.models import SVM
+        from ..classifiers.models import SVM
 
         news_list = [n for s in self.schedules for n in s.news_list]
         corpus = Corpus.from_all_exp()
